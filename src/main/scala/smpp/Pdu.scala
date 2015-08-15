@@ -2,13 +2,14 @@ package smpp
 
 import akka.util.{ByteIterator, ByteString, ByteStringBuilder}
 
-case class Header(commandLength: Int, commandId: Int, commandStatus: Int, seqNumber: Int) {
+case class Header(commandId: Int, commandStatus: Int, seqNumber: Int) {
   implicit val byteOrder = java.nio.ByteOrder.BIG_ENDIAN
-  def toByteString = new ByteStringBuilder()
+  def toByteString(commandLength: Int) = new ByteStringBuilder()
       .putInt(commandLength)
       .putInt(commandId)
       .putInt(commandStatus)
       .putInt(seqNumber).result()
+  val length = 16
 }
 
 trait Body {
@@ -18,7 +19,10 @@ trait Body {
 trait Pdu {
   def header: Header
   def body: Body
-  def toByteString: ByteString = header.toByteString ++ body.toByteString
+  def toByteString: ByteString = {
+    val bodyByteString = body.toByteString
+    header.toByteString(header.length + bodyByteString.length) ++ bodyByteString
+  }
 }
 
 object CommandId {
@@ -52,11 +56,11 @@ object Pdu {
 
   implicit val byteOrder = java.nio.ByteOrder.BIG_ENDIAN
 
-  def respHeader(reqHeader: Header, commandStatus: Int, length: Int) =
-    new Header(length, reqHeader.commandId | 0x80000000, commandStatus, reqHeader.seqNumber)
+  def respHeader(reqHeader: Header, commandStatus: Int) =
+    Header(reqHeader.commandId | 0x80000000, commandStatus, reqHeader.seqNumber)
 
   def getHeader(iterator: ByteIterator): Header = {
-    Header(iterator.getInt, iterator.getInt, iterator.getInt, iterator.getInt)
+    Header(iterator.getInt, iterator.getInt, iterator.getInt)
   }
 
   def getNullTermString(iterator: ByteIterator): String = {
@@ -72,12 +76,13 @@ object Pdu {
 
   def parseRequest(data: ByteString): Pdu = {
     val iterator = data.iterator
-    if (iterator.getInt != data.length)
+    val commandLength = iterator.getInt
+    if (commandLength != data.length)
       throw new IllegalArgumentException("Invalid length octet in PDU data")
     val header = getHeader(iterator)
     import CommandId._
     header.commandId match {
-      case `bind_transmitter` => new BindTransmitter(header, Bind.getBody(iterator))
+      case `bind_transmitter` => BindTransmitter(header, Bind.getBody(iterator))
       case _ => throw new NotImplementedError(s"Unimplemented command ID $header.commandId")
     }
   }

@@ -7,7 +7,7 @@ class PduTest extends FlatSpec {
 
   import smpp.CommandId._
 
-  val bindTx = ByteString(
+  val bindTxBytes = ByteString(
     // Header: length = 16
     0, 0, 0, 53,      // command_length (16 + 37 = 53)
     0, 0, 0,  2,      // command_id
@@ -23,14 +23,17 @@ class PduTest extends FlatSpec {
   1) ++                           // addr_npi
   ByteString('*', 0)              // address_range (2)
 
-  "Pdu#toByteString" should "correctly construct a ByteString" in {
-
-    val request = new BindTransmitter(
-      new Header(53, bind_transmitter, 0, 1),
-      new BindBody("SYSTEM_ID", "password", "mess_gateway", Pdu.SmppVersion, 1, 1, "*")
+  val bindTxPdu = BindTransmitter(
+      Header(bind_transmitter, 0, 1),
+      BindBody("SYSTEM_ID", "password", "mess_gateway", Pdu.SmppVersion, 1, 1, "*")
     )
-    assert(request.toByteString == bindTx)
 
+  "Pdu#toByteString" should "correctly construct a ByteString" in {
+    assert(bindTxPdu.toByteString == bindTxBytes)
+  }
+
+  "Pdu#parseRequest" should "correctly parse a ByteString" in {
+    assert(Pdu.parseRequest(bindTxBytes) == bindTxPdu)
   }
 
 }

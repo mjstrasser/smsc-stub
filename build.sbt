@@ -7,7 +7,7 @@ lazy val commonSettings = Seq(
 lazy val root = (project in file(".")).
   settings(commonSettings: _*).
   settings(
-    name := "SMSC Stub Server in Akka IO"
+    name := "SMSC Stub Server in Akka"
   )
 
 libraryDependencies ++= {
