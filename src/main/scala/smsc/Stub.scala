@@ -3,7 +3,7 @@ package smsc
 import smpp._
 
 object Stub {
-  def response(request: Pdu) = {
+  def responseTo(request: Pdu) = {
     request match {
       case BindTransmitter(header, body) => new BindTransmitterResp(
         Pdu.respHeader(header, 0, 17 + body.systemId.length),

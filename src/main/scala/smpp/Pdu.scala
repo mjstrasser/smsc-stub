@@ -48,6 +48,8 @@ object CommandId {
 
 object Pdu {
 
+  val SmppVersion: Byte = 0x34
+
   implicit val byteOrder = java.nio.ByteOrder.BIG_ENDIAN
 
   def respHeader(reqHeader: Header, commandStatus: Int, length: Int) =

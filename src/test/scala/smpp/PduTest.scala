@@ -1,9 +1,11 @@
 package smpp
 
 import akka.util.ByteString
-import org.scalatest.FunSuite
+import org.scalatest.FlatSpec
 
-class PduTest extends FunSuite {
+class PduTest extends FlatSpec {
+
+  import smpp.CommandId._
 
   val bindTx = ByteString(
     // Header: length = 16
@@ -13,12 +15,22 @@ class PduTest extends FunSuite {
     0, 0, 0,  1       // sequence_number
   ) ++
   // Body: length = 37
-  ByteString("SYSTEM_ID\0") ++    // system_id (10)
-  ByteString("password\0") ++     // password (9)
-  ByteString("mess_gateway\0") ++ // system_type (13)
+  ByteString('S', 'Y', 'S', 'T', 'E', 'M', '_', 'I', 'D', 0) ++                 // system_id
+  ByteString('p', 'a', 's', 's', 'w', 'o', 'r', 'd', 0) ++                      // password
+  ByteString('m', 'e', 's', 's', '_', 'g', 'a', 't', 'e', 'w', 'a', 'y', 0) ++  // system_type
   ByteString(0x34,                // interface_version
   1,                              // addr_ton
   1) ++                           // addr_npi
-  ByteString("*\0")               // address_range (2)
+  ByteString('*', 0)              // address_range (2)
+
+  "Pdu#toByteString" should "correctly construct a ByteString" in {
+
+    val request = new BindTransmitter(
+      new Header(53, bind_transmitter, 0, 1),
+      new BindBody("SYSTEM_ID", "password", "mess_gateway", Pdu.SmppVersion, 1, 1, "*")
+    )
+    assert(request.toByteString == bindTx)
+
+  }
 
 }
