@@ -1,10 +1,25 @@
 package smpp
 
-import akka.util.ByteString
+import akka.util.{ByteIterator, ByteString, ByteStringBuilder}
 
-case class Header(commandLength: Int, commandId: Int, commandStatus: Int, seqNumber: Int)
+case class Header(commandLength: Int, commandId: Int, commandStatus: Int, seqNumber: Int) {
+  implicit val byteOrder = java.nio.ByteOrder.BIG_ENDIAN
+  def toByteString = new ByteStringBuilder()
+      .putInt(commandLength)
+      .putInt(commandId)
+      .putInt(commandStatus)
+      .putInt(seqNumber).result()
+}
 
-trait Pdu
+trait Body {
+  def toByteString: ByteString
+}
+
+trait Pdu {
+  def header: Header
+  def body: Body
+  def toByteString: ByteString = header.toByteString ++ body.toByteString
+}
 
 object CommandId {
   val generic_nack          = 0x00000001
@@ -32,24 +47,38 @@ object CommandId {
 }
 
 object Pdu {
+
   implicit val byteOrder = java.nio.ByteOrder.BIG_ENDIAN
-  def parseHeader(data: ByteString): (Header, ByteString) = {
-    val iterator = data.iterator
-    (new Header(iterator.getInt, iterator.getInt, iterator.getInt, iterator.getInt), iterator.toByteString)
+
+  def respHeader(reqHeader: Header, commandStatus: Int, length: Int) =
+    new Header(length, reqHeader.commandId | 0x80000000, commandStatus, reqHeader.seqNumber)
+
+  def getHeader(iterator: ByteIterator): Header = {
+    Header(iterator.getInt, iterator.getInt, iterator.getInt, iterator.getInt)
   }
-  def parseString(data: ByteString): (String, ByteString) = {
-    val nullPos = data.indexOf(0x00)
-    if (nullPos == -1)
-      throw new IllegalArgumentException("Terminating null byte not found")
-    (data.utf8String, data.drop(nullPos + 1))
+
+  def getNullTermString(iterator: ByteIterator): String = {
+    // Need to clone the iterator to get the first part.
+    val iterator2 = iterator.clone()
+    iterator2.takeWhile(_ > 0)
+    // Clean up the provided iterator.
+    iterator.dropWhile(_ > 0)
+    iterator.getByte
+    // Cloned iterator provides the string.
+    iterator2.toByteString.utf8String
   }
+
   def parseRequest(data: ByteString): Pdu = {
-    if (data.iterator.getInt != data.length)
+    val iterator = data.iterator
+    if (iterator.getInt != data.length)
       throw new IllegalArgumentException("Invalid length octet in PDU data")
-    val (header, body) = parseHeader(data)
+    val header = getHeader(iterator)
     import CommandId._
     header.commandId match {
-      case `bind_transmitter` =>
+      case `bind_transmitter` => new BindTransmitter(header, Bind.getBody(iterator))
+      case _ => throw new NotImplementedError(s"Unimplemented command ID $header.commandId")
     }
   }
+
+  def nullTermString(string: String) = ByteString(string) ++ ByteString(0)
 }

@@ -3,17 +3,16 @@ package smsc
 import akka.actor.{Actor, ActorLogging}
 import akka.io.Tcp
 import akka.util.ByteString
-import smpp.{BindTransmitter, Pdu}
+import smpp.Pdu
 
 class SmscHandler extends Actor with ActorLogging {
 
   import Tcp._
 
   def responseTo(data: ByteString): ByteString = {
-    Pdu.parseRequest(data) match {
-//      case BindTransmitter => ???
-      case _ => ???
-    }
+    val request = Pdu.parseRequest(data)
+    val response = Stub.response(request)
+    response.toByteString
   }
 
   def receive = {

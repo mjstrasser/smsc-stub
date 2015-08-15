@@ -19,7 +19,7 @@ class SmscStub extends Actor with ActorLogging {
     case b @ Bound(localAddress) =>
       log.info("Bind to port {}", localAddress.getPort)
 
-    case CommandFailed(_: smpp.Bind) => context stop self
+    case CommandFailed(_: Bind) => context stop self
 
     case c @ Connected(remote, local) =>
       val handler = context.actorOf(Props[SmscHandler])
