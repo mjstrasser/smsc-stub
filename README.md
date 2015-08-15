@@ -8,6 +8,7 @@ It implements the SMSC side of the [Short Message Peer to Peer Protocol Specific
 ## Currently implemented
 
 The following PDU transactions are implmented:
+
 - `bind_transmitter` -> `bind_transmitter_resp`
 
 ## To do
@@ -15,6 +16,7 @@ The following PDU transactions are implmented:
 Not necessarily in this order!
 
 ESME -> SMSC PDU transactions:
+
 - `bind_receiver` -> `bind_receiver_resp`
 - `bind_transceiver` -> `bind_transceiver_resp`
 - `unbind` -> `unbind_resp`
@@ -29,6 +31,7 @@ ESME -> SMSC PDU transactions:
 - `alert_notification`
 
 SMSC -> ESME:
+
 - `enquire_link` -> `enquire_link_resp`
 - `unbind` -> `unbind_resp`
 - `deliver_sm` -> `deliver_sm_resp`
