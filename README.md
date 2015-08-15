@@ -2,7 +2,8 @@
 
 This project implements a partial Short Message Service Centre (SMSC) stub server using the Akka framework.
 
-It implements the SMSC side of the Short Message Peer to Peer Protocol (SMPP) version 3.4.
+It implements the SMSC side of the [Short Message Peer to Peer Protocol Specification v3.4](http://opensmpp.org/specs/SMPP_v3_4_Issue1_2.pdf).
+
 
 ## Currently implemented
 
