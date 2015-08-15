@@ -32,7 +32,24 @@ object CommandId {
 }
 
 object Pdu {
-  def fromRequest(data: ByteString): Pdu = {
-
+  implicit val byteOrder = java.nio.ByteOrder.BIG_ENDIAN
+  def parseHeader(data: ByteString): (Header, ByteString) = {
+    val iterator = data.iterator
+    (new Header(iterator.getInt, iterator.getInt, iterator.getInt, iterator.getInt), iterator.toByteString)
+  }
+  def parseString(data: ByteString): (String, ByteString) = {
+    val nullPos = data.indexOf(0x00)
+    if (nullPos == -1)
+      throw new IllegalArgumentException("Terminating null byte not found")
+    (data.utf8String, data.drop(nullPos + 1))
+  }
+  def parseRequest(data: ByteString): Pdu = {
+    if (data.iterator.getInt != data.length)
+      throw new IllegalArgumentException("Invalid length octet in PDU data")
+    val (header, body) = parseHeader(data)
+    import CommandId._
+    header.commandId match {
+      case `bind_transmitter` =>
+    }
   }
 }

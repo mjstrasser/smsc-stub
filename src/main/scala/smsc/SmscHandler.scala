@@ -10,8 +10,8 @@ class SmscHandler extends Actor with ActorLogging {
   import Tcp._
 
   def responseTo(data: ByteString): ByteString = {
-    Pdu.fromRequest(data) match {
-      case BindTransmitter => ???
+    Pdu.parseRequest(data) match {
+//      case BindTransmitter => ???
       case _ => ???
     }
   }

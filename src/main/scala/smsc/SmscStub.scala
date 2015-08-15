@@ -8,6 +8,7 @@ import akka.io.{IO, Tcp}
 class SmscStub extends Actor with ActorLogging {
 
   import Tcp._
+  import context.system
 
   val smscPort = 10300
 
