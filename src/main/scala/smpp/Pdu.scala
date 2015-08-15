@@ -87,5 +87,5 @@ object Pdu {
     }
   }
 
-  def nullTermString(string: String) = ByteString(string) ++ ByteString(0)
+  def nullTermString(string: String) = ByteString(string, "ASCII") ++ ByteString(0)
 }
