@@ -11,7 +11,9 @@ class SmscHandler extends Actor with ActorLogging {
 
   def responseTo(data: ByteString): ByteString = {
     val request = Pdu.parseRequest(data)
+    log.info("Request: {}", request)
     val response = Stub.responseTo(request)
+    log.info("Response: {}", response)
     response.toByteString
   }
 

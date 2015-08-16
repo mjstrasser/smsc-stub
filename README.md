@@ -10,6 +10,11 @@ It implements the SMSC side of the [Short Message Peer to Peer Protocol Specific
 The following PDU transactions are implmented:
 
 - `bind_transmitter` -> `bind_transmitter_resp`
+- `bind_receiver` -> `bind_receiver_resp`
+- `bind_transceiver` -> `bind_transceiver_resp`
+- `unbind` -> `unbind_resp`
+- `enquire_link` -> `enquire_link_resp`
+- `submit_sm` (without optional parameters) -> `submit_sm_resp`
 
 ## To do
 
@@ -17,11 +22,6 @@ Not necessarily in this order!
 
 ESME -> SMSC PDU transactions:
 
-- `bind_receiver` -> `bind_receiver_resp`
-- `bind_transceiver` -> `bind_transceiver_resp`
-- `unbind` -> `unbind_resp`
-- `enquire_link` -> `enquire_link_resp`
-- `submit_sm` -> `submit_sm_resp`
 - `submit_sm_multi` -> `submit_sm_multi_resp`
 - `replace_sm` -> `replace_sm_resp`
 - `data_sm` -> `data_sm_resp`

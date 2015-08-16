@@ -48,9 +48,10 @@ object Pdu {
     // Need to clone the iterator to get the first part.
     val iterator2 = iterator.clone()
     iterator2.takeWhile(_ > 0)
-    // Clean up the provided iterator.
+    // Clean up from the provided iterator.
     iterator.dropWhile(_ > 0)
-    iterator.getByte
+    // Remove the terminating null unless at the end of the ByteString.
+    if (iterator.nonEmpty) iterator.getByte
     // Cloned iterator provides the string.
     iterator2.toByteString.utf8String
   }
@@ -68,6 +69,7 @@ object Pdu {
       case `bind_transceiver` => BindTransceiver(header, Bind.getBody(iterator))
       case `unbind` => Unbind(header, EmptyBody())
       case `enquire_link` => EnquireLink(header, EmptyBody())
+      case `submit_sm` => SubmitSm(header, Submit.getBody(iterator))
       case _ => throw new NotImplementedError(s"Unimplemented command ID ${header.commandId}")
     }
   }

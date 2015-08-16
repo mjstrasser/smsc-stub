@@ -33,7 +33,7 @@ case class EnquireLinkResp(header: Header, body: EmptyBody) extends Pdu
 
 object Bind {
 
-  def respBody(systemId: String) = new BindRespBody(systemId)
+  def respBody(systemId: String) = BindRespBody(systemId)
 
   def getBody(iter: ByteIterator): BindBody = {
     val systemId = getNullTermString(iter)
@@ -43,6 +43,6 @@ object Bind {
     val addrTon = iter.getByte
     val addrNpi = iter.getByte
     val addressRange = getNullTermString(iter)
-    new BindBody(systemId, password, systemType, interfaceVersion, addrTon, addrNpi, addressRange)
+    BindBody(systemId, password, systemType, interfaceVersion, addrTon, addrNpi, addressRange)
   }
 }
