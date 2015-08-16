@@ -7,7 +7,7 @@ import Pdu._
 import CommandStatus._
 
 object Stub {
-  def responseTo(request: Pdu) = {
+  def responseTo(request: Pdu): Pdu = {
     request match {
       case BindTransmitter(header, body) => BindTransmitterResp(respHeader(header, NULL), Bind.respBody(body.systemId))
       case BindReceiver(header, body) => BindReceiverResp(respHeader(header, NULL), Bind.respBody(body.systemId))
