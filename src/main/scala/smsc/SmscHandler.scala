@@ -17,11 +17,11 @@ class SmscHandler extends Actor with ActorLogging {
 
   def receive = {
     case Received(data) =>
+      log.info("Received data: {}", data)
       sender ! Write(responseTo(data))
     case PeerClosed =>
       log.info("Disconnected")
       context stop self
   }
-
 
 }
