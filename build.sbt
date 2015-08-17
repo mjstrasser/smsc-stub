@@ -1,3 +1,7 @@
+import com.github.retronym.SbtOneJar._
+
+oneJarSettings
+
 lazy val commonSettings = Seq(
   organization := "michaelstrasser.com",
   version := "0.0.1",
@@ -9,7 +13,7 @@ lazy val root = (project in file(".")).
   settings(
     name := "SMSC Stub Server in Akka"
   )
-
+  
 libraryDependencies ++= {
   val akkaV = "2.3.12"
   val sprayV = "1.3.3"

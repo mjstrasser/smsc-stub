@@ -1,7 +1,7 @@
 package smpp
 
 object CommandId {
-  val generic_nack          = 0x00000001
+  val generic_nack          = 0x80000000
   val bind_receiver         = 0x00000001
   val bind_receiver_resp    = 0x80000001
   val bind_transmitter      = 0x00000002

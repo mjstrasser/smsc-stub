@@ -17,10 +17,10 @@ object Main extends App {
   
   val smscPort = 10300
   val smppService = system.actorOf(Props[SmscStub], "smsc-stub")
-  IO(Tcp) ! Bind(smppService, new InetSocketAddress("localhost", smscPort))
+  IO(Tcp) ! Bind(smppService, new InetSocketAddress("0.0.0.0", smscPort))
 
-  val httpPort = 8080
+  val httpPort = 18888
   val httpService = system.actorOf(Props[SmscControl], "smsc-control")
-  IO(Http) ? Http.Bind(httpService, interface = "localhost", port = httpPort)
+  IO(Http) ? Http.Bind(httpService, interface = "0.0.0.0", port = httpPort)
 
 }

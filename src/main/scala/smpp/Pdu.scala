@@ -29,7 +29,10 @@ case class EmptyBody() extends Body {
   def toByteString = ByteString()
 }
 
-
+case class GenericNack(header: Header, body: EmptyBody) extends Pdu
+case class NoPdu(header: Header, body: EmptyBody) extends Pdu {
+    override def toByteString = ByteString()
+}
 
 object Pdu {
 
@@ -70,6 +73,7 @@ object Pdu {
       case `unbind` => Unbind(header, EmptyBody())
       case `enquire_link` => EnquireLink(header, EmptyBody())
       case `submit_sm` => SubmitSm(header, Submit.getBody(iterator))
+      case `generic_nack` => GenericNack(header, EmptyBody())
       case _ => throw new NotImplementedError(s"Unimplemented command ID ${header.commandId}")
     }
   }

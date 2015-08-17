@@ -13,6 +13,7 @@ class SmscControl extends Actor with ActorLogging with SmscControlService {
   override def receive = runRoute(controlRoute)
 
   def sendMoMessage(moMessage: MoMessage): String = {
+    log.info("Sending MO Message: {}", moMessage)
     val deliverSm = Deliver.sm(moMessage)
     val smppHandler = context.actorOf(Props[SmscHandler])
     smppHandler ! deliverSm

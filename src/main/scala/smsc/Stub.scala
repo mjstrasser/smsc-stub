@@ -15,6 +15,7 @@ object Stub {
       case Unbind(header, body) => Unbind(respHeader(header, NULL), body)
       case EnquireLink(header, body) => EnquireLinkResp(respHeader(header, ESME_ROK), body)
       case SubmitSm(header, body) => SubmitSmResp(respHeader(header, ESME_ROK), Submit.respBody(newMessageId))
+      case GenericNack(header, body) => NoPdu(header, body)
     }
   }
 
