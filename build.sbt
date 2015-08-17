@@ -11,9 +11,12 @@ lazy val root = (project in file(".")).
   )
 
 libraryDependencies ++= {
-  val akkaVersion = "2.3.12"
+  val akkaV = "2.3.12"
+  val sprayV = "1.3.3"
   Seq(
-    "com.typesafe.akka" %% "akka-actor"  % akkaVersion,
-    "org.scalatest"     %% "scalatest"   % "2.2.1"      % "test"
+    "com.typesafe.akka" %% "akka-actor"    % akkaV,
+    "io.spray"          %% "spray-can"     % sprayV,
+    "io.spray"          %% "spray-routing" % sprayV,
+    "org.scalatest"     %% "scalatest"     % "2.2.1"    % "test"
   )
 }

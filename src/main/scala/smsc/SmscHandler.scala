@@ -12,6 +12,18 @@ class SmscHandler extends Actor with ActorLogging {
 
   import Tcp._
 
+  def receive = {
+    case deliverSm: DeliverSm =>
+      log.info("Received DeliverSm: {}", deliverSm)
+      randomSender ! Write(deliverSm.toByteString)
+    case Received(data) =>
+      log.info("Received data: {}", data)
+      sender ! Write(responseTo(data))
+    case PeerClosed =>
+      log.info("Disconnected")
+      context stop self
+  }
+
   def responseTo(data: ByteString): ByteString = {
     val request = Pdu.parseRequest(data)
     log.info("Request: {}", request)
@@ -25,19 +37,6 @@ class SmscHandler extends Actor with ActorLogging {
 
     response.toByteString
   }
-
-  def receive = {
-    case Received(data) =>
-      log.info("Received data: {}", data)
-      sender ! Write(responseTo(data))
-    case PeerClosed =>
-      log.info("Disconnected")
-      context stop self
-  }
-
-//  def sendDeliverSm(deliverSm: DeliverSm): DeliverSmResp {
-//    randomSender ! Write(deliverSm.toBytes)
-//  }
 
   def randomSender = {
     val length = SmscHandler.receivers.length
