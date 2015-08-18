@@ -1,7 +1,7 @@
 package smpp
 
-import Pdu._
-import akka.util.{ByteString, ByteIterator}
+import akka.util.{ByteIterator, ByteString}
+import smpp.Pdu._
 
 case class SubmitBody(serviceType: String, sourceAddrTon: Byte, sourceAddrNpi: Byte, sourceAddr: String,
                       destAddrTon: Byte, destAddrNpi: Byte, destinationAddr: String,
@@ -29,24 +29,24 @@ case class SubmitSmResp(header: Header, body: SubmitRespBody) extends Pdu
 object Submit {
 
   def getBody(iter: ByteIterator): SubmitBody = {
-    val serviceType = getNullTermString(iter)
+    val serviceType = parseNullTermString(iter)
     val sourceAddrTon = iter.getByte
     val sourceAddrNpi = iter.getByte
-    val sourceAddr = getNullTermString(iter)
+    val sourceAddr = parseNullTermString(iter)
     val destAddrTon = iter.getByte
     val destAddrNpi = iter.getByte
-    val destinationAddr = getNullTermString(iter)
+    val destinationAddr = parseNullTermString(iter)
     val esmClass = iter.getByte
     val protocolId = iter.getByte
     val priorityFlag = iter.getByte
-    val scheduleDeliveryTime = getNullTermString(iter)
-    val validityPeriod = getNullTermString(iter)
+    val scheduleDeliveryTime = parseNullTermString(iter)
+    val validityPeriod = parseNullTermString(iter)
     val registeredDelivery = iter.getByte
     val replaceIfPresentFlag = iter.getByte
     val dataCoding = iter.getByte
     val smDefaultMsgId = iter.getByte
     val smLength = iter.getByte
-    val shortMessage = getNullTermString(iter)
+    val shortMessage = parseNullTermString(iter)
     SubmitBody(serviceType, sourceAddrTon, sourceAddrNpi, sourceAddr, destAddrTon, destAddrNpi, destinationAddr,
       esmClass, protocolId, priorityFlag, scheduleDeliveryTime, validityPeriod, registeredDelivery,
       replaceIfPresentFlag, dataCoding, smDefaultMsgId, smLength, shortMessage)

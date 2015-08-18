@@ -13,8 +13,8 @@ import scala.util.Random
  *
  * It receives:
  *
- * - SMPP requests from an ESME as ByteString objects from SmscStub actor.
- * - DeliverSm objects from SmscControl actor to send to a bound receiver
+ * - SMPP requests from an ESME as ByteString objects from [[SmscStub]] actor.
+ * - [[SmscStub]] objects from [[SmscControl]] actor to send to a bound receiver
  *   or transceiver ESME.
  */
 class SmscHandler extends Actor with ActorLogging {
@@ -40,7 +40,7 @@ class SmscHandler extends Actor with ActorLogging {
   }
 
   /**
-   * Generate a response to a PDU received over TCP (via SmscStub).
+   * Generate a response to a PDU received over TCP (via [[SmscStub]]).
    *
    * @param data the PDU as bytes
    * @return a PDU as bytes
@@ -76,7 +76,7 @@ class SmscHandler extends Actor with ActorLogging {
   }
 
   /**
-   * Return true if the response PDU is a successful bind_receiver_resp or bind_transceiver_resp.
+   * Return true if the response PDU is a successful `bind_receiver_resp` or `bind_transceiver_resp`.
    */
   def isReceiverBindResp(response: Pdu) =
     response match {

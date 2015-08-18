@@ -1,7 +1,7 @@
 package smpp
 
 import akka.util.{ByteIterator, ByteString}
-import Pdu._
+import smpp.Pdu._
 
 case class BindBody(systemId: String, password: String, systemType: String, interfaceVersion: Byte,
                     addrTon: Byte, addrNpi: Byte, addressRange: String) extends Body {
@@ -36,13 +36,13 @@ object Bind {
   def respBody(systemId: String) = BindRespBody(systemId)
 
   def getBody(iter: ByteIterator): BindBody = {
-    val systemId = getNullTermString(iter)
-    val password = getNullTermString(iter)
-    val systemType = getNullTermString(iter)
+    val systemId = parseNullTermString(iter)
+    val password = parseNullTermString(iter)
+    val systemType = parseNullTermString(iter)
     val interfaceVersion = iter.getByte
     val addrTon = iter.getByte
     val addrNpi = iter.getByte
-    val addressRange = getNullTermString(iter)
+    val addressRange = parseNullTermString(iter)
     BindBody(systemId, password, systemType, interfaceVersion, addrTon, addrNpi, addressRange)
   }
 }
