@@ -35,7 +35,7 @@ object Bind {
 
   def respBody(systemId: String) = BindRespBody(systemId)
 
-  def getBody(iter: ByteIterator): BindBody = {
+  def parseBody(iter: ByteIterator): BindBody = {
     val systemId = parseNullTermString(iter)
     val password = parseNullTermString(iter)
     val systemType = parseNullTermString(iter)

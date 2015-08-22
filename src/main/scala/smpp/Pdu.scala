@@ -18,11 +18,11 @@ case class Header(commandId: Int, commandStatus: Int, seqNumber: Int) {
   /**
    * Writes the header to a ByteString with the specified value for `command_length`.
    *
-   * @param commandLength length of the PDU including all of the header
+   * @param bodyLength length of the PDU body
    * @return a ByteString with the header
    */
-  def toByteString(commandLength: Int) = new ByteStringBuilder()
-      .putInt(commandLength)
+  def toByteString(bodyLength: Int) = new ByteStringBuilder()
+      .putInt(length + bodyLength)
       .putInt(commandId)
       .putInt(commandStatus)
       .putInt(seqNumber).result()
@@ -31,24 +31,41 @@ case class Header(commandId: Int, commandStatus: Int, seqNumber: Int) {
   val length = 16
 }
 
+/**
+ * The body of an SMPP PDU. It can be empty or contain contents that must be
+ * written to bytes.
+ */
 trait Body {
   def toByteString: ByteString
 }
 
+/**
+ * An SMPP protocol data unit (PDU). Every PDU has a header and optionally a body.
+ */
 trait Pdu {
   def header: Header
   def body: Body
+
+  /**
+   * The network representation of an SMPP PDU with header followed by body.
+   * @return the combination of header and body
+   */
   def toByteString: ByteString = {
     val bodyByteString = body.toByteString
-    header.toByteString(header.length + bodyByteString.length) ++ bodyByteString
+    header.toByteString(bodyByteString.length) ++ bodyByteString
   }
 }
 
+/**
+ * Zero-byte body for PDUs that need it (e.g. [[Unbind]] and [[GenericNack]]).
+ */
 case class EmptyBody() extends Body {
   def toByteString = ByteString()
 }
 
 case class GenericNack(header: Header, body: EmptyBody) extends Pdu
+
+/** Fake PDU for when no reply is required: only to [[smpp.GenericNack]]. */
 case class NoPdu(header: Header, body: EmptyBody) extends Pdu {
     override def toByteString = ByteString()
 }
@@ -104,6 +121,20 @@ object Pdu {
     iterator2.toByteString.utf8String
   }
 
+  /**
+   * Parses an SMPP request PDU from data bytes.
+   *
+   * These PDUs are currently supported:
+   * - [[BindTransmitter]]
+   * - [[BindTransceiver]]
+   * - [[BindReceiver]]
+   * - [[Unbind]]
+   * - [[EnquireLink]]
+   * - [[GenericNack]]
+   *
+   * @param data the bytes to parse
+   * @return the SMPP request PDU
+   */
   def parseRequest(data: ByteString): Pdu = {
     val iterator = data.iterator
     val commandLength = iterator.getInt
@@ -112,9 +143,9 @@ object Pdu {
     val header = parseHeader(iterator)
     import CommandId._
     header.commandId match {
-      case `bind_transmitter` => BindTransmitter(header, Bind.getBody(iterator))
-      case `bind_receiver` => BindReceiver(header, Bind.getBody(iterator))
-      case `bind_transceiver` => BindTransceiver(header, Bind.getBody(iterator))
+      case `bind_transmitter` => BindTransmitter(header, Bind.parseBody(iterator))
+      case `bind_receiver` => BindReceiver(header, Bind.parseBody(iterator))
+      case `bind_transceiver` => BindTransceiver(header, Bind.parseBody(iterator))
       case `unbind` => Unbind(header, EmptyBody())
       case `enquire_link` => EnquireLink(header, EmptyBody())
       case `submit_sm` => SubmitSm(header, Submit.getBody(iterator))
@@ -123,5 +154,11 @@ object Pdu {
     }
   }
 
+  /**
+   * Constructs a null-terminated C-string with ASCII encoding.
+   *
+   * @param string source string
+   * @return bytes of the string with a null byte appended
+   */
   def nullTermString(string: String) = ByteString(string, "ASCII") ++ ByteString(0)
 }
