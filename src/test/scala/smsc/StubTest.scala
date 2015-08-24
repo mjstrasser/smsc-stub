@@ -15,7 +15,7 @@ class StubTest extends FlatSpec {
     )
     val response = new BindTransmitterResp(
       Header(bind_transmitter_resp, 0, 1),
-      BindRespBody("SYSTEM_ID")
+      BindRespBody(Stub.StubSystemId)
     )
 
     assert(Stub.responseTo(request) == response)
