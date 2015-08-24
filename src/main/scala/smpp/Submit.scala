@@ -3,6 +3,30 @@ package smpp
 import akka.util.{ByteIterator, ByteString}
 import smpp.Pdu._
 
+/**
+ * The body of a submit request PDU.
+ *
+ * Currently without any optional parameters.
+ *
+ * @param serviceType
+ * @param sourceAddrTon
+ * @param sourceAddrNpi
+ * @param sourceAddr
+ * @param destAddrTon
+ * @param destAddrNpi
+ * @param destinationAddr
+ * @param esmClass
+ * @param protocolId
+ * @param priorityFlag
+ * @param scheduleDeliveryTime
+ * @param validityPeriod
+ * @param registeredDelivery
+ * @param replaceIfPresentFlag
+ * @param dataCoding
+ * @param smDefaultMsgId
+ * @param smLength
+ * @param shortMessage
+ */
 case class SubmitBody(serviceType: String, sourceAddrTon: Byte, sourceAddrNpi: Byte, sourceAddr: String,
                       destAddrTon: Byte, destAddrNpi: Byte, destinationAddr: String,
                       esmClass: Byte, protocolId: Byte, priorityFlag: Byte,
@@ -28,7 +52,13 @@ case class SubmitSmResp(header: Header, body: SubmitRespBody) extends Pdu
 
 object Submit {
 
-  def getBody(iter: ByteIterator): SubmitBody = {
+  /**
+   * Parses the body of a submit PDU from bytes.
+   *
+   * @param iter iterator over the bytes with the body
+   * @return the body of the PDU
+   */
+  def parseBody(iter: ByteIterator): SubmitBody = {
     val serviceType = parseNullTermString(iter)
     val sourceAddrTon = iter.getByte
     val sourceAddrNpi = iter.getByte

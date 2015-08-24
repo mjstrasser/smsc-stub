@@ -13,9 +13,9 @@ import scala.util.Random
  *
  * It receives:
  *
- * - SMPP requests from an ESME as ByteString objects from [[SmscStub]] actor.
- * - [[SmscStub]] objects from [[SmscControl]] actor to send to a bound receiver
- *   or transceiver ESME.
+ *  - SMPP requests from an ESME as ByteString objects from [[SmscStub]] actor.
+ *  - [[SmscStub]] objects from [[SmscControl]] actor to send to a bound receiver
+ *    or transceiver ESME.
  */
 class SmscHandler extends Actor with ActorLogging {
 

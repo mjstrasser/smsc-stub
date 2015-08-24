@@ -3,6 +3,9 @@ package smsc
 import akka.actor._
 import akka.io.Tcp._
 
+/**
+ * Actor that is bound to the TCP port that listens to SMPP requests.
+ */
 class SmscStub extends Actor with ActorLogging {
 
   def receive = {

@@ -1,13 +1,20 @@
 package smsc
 
+import java.net.InetSocketAddress
+
 import akka.actor.{ActorSystem, Props}
 import akka.io.{IO, Tcp}
 import akka.pattern.ask
 import akka.util.Timeout
-import java.net.InetSocketAddress
-import scala.concurrent.duration._
 import spray.can.Http
 
+import scala.concurrent.duration._
+
+/**
+ * Main program for the SMSC Stub Server.
+ *
+ * Proper configuration will be coming soon.
+ */
 object Main extends App {
 
   import Tcp._

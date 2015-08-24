@@ -11,17 +11,19 @@ import smpp._
   */
 object Stub {
 
+  val StubSystemId = "SMSC Stub Server"
+
   /**
-   * Creates a successful response PDU for a request. All have `command_status` set to [[ESME_ROK]].
+   * Creates a successful response PDU for a request with `command_status` set to `ESME_ROK`.
    *
    * @param request a request PDU
    * @return the matching successful response PDU with the same value of `sequence_number`
    */
   def responseTo(request: Pdu): Pdu = {
     request match {
-      case BindTransmitter(header, body) => BindTransmitterResp(respHeader(header, ESME_ROK), Bind.respBody(body.systemId))
-      case BindReceiver(header, body) => BindReceiverResp(respHeader(header, ESME_ROK), Bind.respBody(body.systemId))
-      case BindTransceiver(header, body) => BindTransceiverResp(respHeader(header, ESME_ROK), Bind.respBody(body.systemId))
+      case BindTransmitter(header, body) => BindTransmitterResp(respHeader(header, ESME_ROK), Bind.respBody(StubSystemId))
+      case BindReceiver(header, body) => BindReceiverResp(respHeader(header, ESME_ROK), Bind.respBody(StubSystemId))
+      case BindTransceiver(header, body) => BindTransceiverResp(respHeader(header, ESME_ROK), Bind.respBody(StubSystemId))
       case Unbind(header, body) => Unbind(respHeader(header, ESME_ROK), body)
       case EnquireLink(header, body) => EnquireLinkResp(respHeader(header, ESME_ROK), body)
       case SubmitSm(header, body) => SubmitSmResp(respHeader(header, ESME_ROK), Submit.respBody(newMessageId))

@@ -7,7 +7,7 @@ It implements the SMSC side of the [Short Message Peer to Peer Protocol Specific
 
 ## Currently implemented
 
-The following PDU transactions are implmented:
+The following PDU transactions are implemented:
 
 - `bind_transmitter` -> `bind_transmitter_resp`
 - `bind_receiver` -> `bind_receiver_resp`

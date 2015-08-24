@@ -63,6 +63,7 @@ case class EmptyBody() extends Body {
   def toByteString = ByteString()
 }
 
+/** Class for the SMPP `generic_nack` PDU. */
 case class GenericNack(header: Header, body: EmptyBody) extends Pdu
 
 /** Fake PDU for when no reply is required: only to [[smpp.GenericNack]]. */
@@ -125,12 +126,14 @@ object Pdu {
    * Parses an SMPP request PDU from data bytes.
    *
    * These PDUs are currently supported:
-   * - [[BindTransmitter]]
-   * - [[BindTransceiver]]
-   * - [[BindReceiver]]
-   * - [[Unbind]]
-   * - [[EnquireLink]]
-   * - [[GenericNack]]
+   *
+   *  - [[BindTransmitter]]
+   *  - [[BindTransceiver]]
+   *  - [[BindReceiver]]
+   *  - [[Unbind]]
+   *  - [[EnquireLink]]
+   *  - [[SubmitSm]]
+   *  - [[GenericNack]]
    *
    * @param data the bytes to parse
    * @return the SMPP request PDU
@@ -148,7 +151,7 @@ object Pdu {
       case `bind_transceiver` => BindTransceiver(header, Bind.parseBody(iterator))
       case `unbind` => Unbind(header, EmptyBody())
       case `enquire_link` => EnquireLink(header, EmptyBody())
-      case `submit_sm` => SubmitSm(header, Submit.getBody(iterator))
+      case `submit_sm` => SubmitSm(header, Submit.parseBody(iterator))
       case `generic_nack` => GenericNack(header, EmptyBody())
       case _ => throw new NotImplementedError(s"Unimplemented command ID ${header.commandId}")
     }
