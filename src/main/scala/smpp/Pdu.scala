@@ -22,10 +22,11 @@ case class Header(commandId: Int, commandStatus: Int, seqNumber: Int) {
    * @return a ByteString with the header
    */
   def toByteString(bodyLength: Int) = new ByteStringBuilder()
-      .putInt(length + bodyLength)
-      .putInt(commandId)
-      .putInt(commandStatus)
-      .putInt(seqNumber).result()
+    .putInt(length + bodyLength)
+    .putInt(commandId)
+    .putInt(commandStatus)
+    .putInt(seqNumber)
+    .result()
   /** SMPP PDU headers are all 16 bytes long (I think) */
   // TODO: Confirm that all PDU headers are 16 bytes long.
   val length = 16
