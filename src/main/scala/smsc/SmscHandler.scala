@@ -26,7 +26,9 @@ class SmscHandler extends Actor with ActorLogging {
     case deliverSm: DeliverSm =>
       // DeliverSm object sent by the SmscControl actor.
       log.debug("Sending: {}", deliverSm)
-      randomReceiver ! Write(deliverSm.toByteString)
+      val deliverBytes = deliverSm.toByteString
+//      log.debug("As bytes: {}", deliverBytes)
+      randomReceiver ! Write(deliverBytes)
 
     case Received(data) =>
       // Data received from the SmscStub actor.

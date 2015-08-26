@@ -20,7 +20,7 @@ case class DeliverBody(serviceType: String, sourceAddrTon: Byte, sourceAddrNpi: 
     ByteString(esmClass, protocolId, priorityFlag) ++
     nullTermString(scheduleDeliveryTime) ++ nullTermString(validityPeriod) ++
     ByteString(registeredDelivery, replaceIfPresentFlag, dataCoding, smDefaultMsgId, smLength) ++
-    nullTermString(shortMessage)
+    octetString(shortMessage)
   override def toString = s"(source: $sourceAddr dest: $destinationAddr msg: $shortMessage)"
 }
 
@@ -57,7 +57,7 @@ object Deliver {
     val dataCoding = iter.getByte
     val smDefaultMsgId = iter.getByte
     val smLength = iter.getByte
-    val shortMessage = parseNullTermString(iter)
+    val shortMessage = parseOctetString(iter, smLength)
     DeliverBody(serviceType, sourceAddrTon, sourceAddrNpi, sourceAddr, destAddrTon, destAddrNpi, destinationAddr,
       esmClass, protocolId, priorityFlag, scheduleDeliveryTime, validityPeriod, registeredDelivery,
       replaceIfPresentFlag, dataCoding, smDefaultMsgId, smLength, shortMessage)

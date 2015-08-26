@@ -134,6 +134,17 @@ object Pdu {
     iterator2.toByteString.utf8String
   }
 
+  def parseOctetString(iterator: ByteIterator, length: Int): String = {
+    // Need to clone the iterator to get the first part.
+    val iterator2 = iterator.clone()
+    iterator2.take(length)
+    // Clean up from the provided iterator.
+    iterator.drop(length)
+    // Cloned iterator provides the string.
+    // TODO: Ensure the string is actually ASCII.
+    iterator2.toByteString.utf8String
+  }
+
   /**
    * Parses an SMPP request PDU from data bytes.
    *
@@ -176,4 +187,12 @@ object Pdu {
    * @return bytes of the string with a null byte appended
    */
   def nullTermString(string: String) = ByteString(string, "ASCII") ++ ByteString(0)
+
+  /**
+   * Constructs an octet string with ASCII encoding.
+   *
+   * @param string source string
+   * @return bytes of the string in ASCII
+   */
+  def octetString(string: String) = ByteString(string, "ASCII")
 }
