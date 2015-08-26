@@ -1,9 +1,8 @@
 package smsc
 
-import akka.actor.{Actor, ActorLogging, ActorRef}
+import akka.actor.{Actor, ActorLogging, ActorRef, Props}
 import akka.io.Tcp
 import akka.util.ByteString
-import org.slf4j.LoggerFactory
 import smpp._
 
 import scala.collection.mutable.ListBuffer
@@ -22,6 +21,8 @@ class SmscHandler extends Actor with ActorLogging {
 
   import Tcp._
 
+  val endToEndLogger = context.actorOf(Props[EndToEndLogger])
+
   def receive = {
 
     case deliverSm: DeliverSm =>
@@ -29,7 +30,7 @@ class SmscHandler extends Actor with ActorLogging {
       log.info("Sending: {}", deliverSm)
       val deliverBytes = deliverSm.toByteString
       log.debug("As bytes: {}", deliverBytes)
-      SmscHandler.logTiming(deliverSm)
+      endToEndLogger ! deliverSm
       randomReceiver ! Write(deliverBytes)
 
     case Received(data) =>
@@ -53,7 +54,7 @@ class SmscHandler extends Actor with ActorLogging {
     val request = Pdu.parseRequest(data)
     log.info("Received: {}", request)
     log.debug("As bytes: {}", data)
-    SmscHandler.logTiming(request)
+    endToEndLogger ! request
 
     if ((request.header.commandId & 0x80000000) == 0) {
 
@@ -106,18 +107,4 @@ object SmscHandler {
    * connections.
    */
   val receivers = ListBuffer[ActorRef]()
-
-  /** Special logger for end-to-end timings. */
-  val endToEnd = LoggerFactory.getLogger("EndToEnd")
-
-  /**
-   * Logs the basics of the message for a DeliverSM or SubmitSM.
-   */
-  def logTiming(pdu: Pdu) = pdu match {
-    case SubmitSm(_, submitBody) =>
-      endToEnd.info("{},{},{}", submitBody.sourceAddr, submitBody.destinationAddr, submitBody.shortMessage)
-    case DeliverSm(_, deliverBody) =>
-      endToEnd.info("{},{},{}", deliverBody.sourceAddr, deliverBody.destinationAddr, deliverBody.shortMessage)
-    case _ =>
-  }
 }

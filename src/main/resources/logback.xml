@@ -20,11 +20,11 @@
             <maxHistory>30</maxHistory>
         </rollingPolicy>
         <encoder>
-            <pattern>%date{yyyy-MM-dd','hh:mm:ss'.'SSS},%msg%n</pattern>
+            <pattern>%d{yyyy-MM-dd},%d{hh:mm:ss'.'SSS},%msg%n</pattern>
         </encoder>
     </appender>
 
-    <logger name="EndToEnd" level="INFO" additivity="false">
+    <logger name="smsc.EndToEndLogger" level="INFO" additivity="false">
         <appender-ref ref="END_TO_END"/>
     </logger>
 
