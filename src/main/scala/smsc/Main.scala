@@ -19,15 +19,15 @@ object Main extends App {
 
   import Tcp._
 
+  val settings = new Settings
+
   implicit val system = ActorSystem("smsc-stub-server")
   implicit val timeout = Timeout(5.seconds)
   
-  val smscPort = 10300
   val smppService = system.actorOf(Props[SmscStub], "smsc-stub")
-  IO(Tcp) ! Bind(smppService, new InetSocketAddress("0.0.0.0", smscPort))
+  IO(Tcp) ! Bind(smppService, new InetSocketAddress("0.0.0.0", settings.smppPort))
 
-  val httpPort = 18888
   val httpService = system.actorOf(Props[SmscControl], "smsc-control")
-  IO(Http) ? Http.Bind(httpService, interface = "0.0.0.0", port = httpPort)
+  IO(Http) ? Http.Bind(httpService, interface = "0.0.0.0", port = settings.httpPort)
 
 }

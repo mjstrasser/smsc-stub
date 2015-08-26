@@ -21,6 +21,6 @@ libraryDependencies ++= {
     "com.typesafe.akka" %% "akka-actor"    % akkaV,
     "io.spray"          %% "spray-can"     % sprayV,
     "io.spray"          %% "spray-routing" % sprayV,
-    "org.scalatest"     %% "scalatest"     % "2.2.1"    % "test"
+    "org.scalatest"     %% "scalatest"     % "2.2.1"    % Test
   )
 }

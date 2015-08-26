@@ -21,15 +21,21 @@ case class DeliverBody(serviceType: String, sourceAddrTon: Byte, sourceAddrNpi: 
     nullTermString(scheduleDeliveryTime) ++ nullTermString(validityPeriod) ++
     ByteString(registeredDelivery, replaceIfPresentFlag, dataCoding, smDefaultMsgId, smLength) ++
     nullTermString(shortMessage)
+  override def toString = s"(source: $sourceAddr dest: $destinationAddr msg: $shortMessage)"
 }
 
 case class DeliverRespBody(messageId: String) extends Body {
   def toByteString = nullTermString(messageId)
+  override def toString = s"(id: $messageId)"
 }
 
-case class DeliverSm(header: Header, body: DeliverBody) extends Pdu
+case class DeliverSm(header: Header, body: DeliverBody) extends Pdu {
+  val name = "deliver"
+}
 
-case class DeliverSmResp(header: Header, body: DeliverRespBody) extends Pdu
+case class DeliverSmResp(header: Header, body: DeliverRespBody) extends Pdu {
+  val name = "deliver_resp"
+}
 
 object Deliver {
 

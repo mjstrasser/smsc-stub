@@ -30,6 +30,8 @@ case class Header(commandId: Int, commandStatus: Int, seqNumber: Int) {
   /** SMPP PDU headers are all 16 bytes long (I think) */
   // TODO: Confirm that all PDU headers are 16 bytes long.
   val length = 16
+
+  override def toString = s"(id: $commandId status: $commandStatus seq: $seqNumber)"
 }
 
 /**
@@ -44,6 +46,7 @@ trait Body {
  * An SMPP protocol data unit (PDU). Every PDU has a header and optionally a body.
  */
 trait Pdu {
+  val name: String
   def header: Header
   def body: Body
 
@@ -55,6 +58,8 @@ trait Pdu {
     val bodyByteString = body.toByteString
     header.toByteString(bodyByteString.length) ++ bodyByteString
   }
+
+  override def toString = s"($name: $header $body)"
 }
 
 /**
@@ -65,10 +70,13 @@ case class EmptyBody() extends Body {
 }
 
 /** Class for the SMPP `generic_nack` PDU. */
-case class GenericNack(header: Header, body: EmptyBody) extends Pdu
+case class GenericNack(header: Header, body: EmptyBody) extends Pdu {
+  val name = "nack"
+}
 
 /** Fake PDU for when no reply is required: only to [[smpp.GenericNack]]. */
 case class NoPdu(header: Header, body: EmptyBody) extends Pdu {
+    val name = "NO PDU!"
     override def toByteString = ByteString()
 }
 

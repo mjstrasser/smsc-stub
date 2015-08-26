@@ -1,14 +1,13 @@
 package smsc
 
 import akka.actor._
-import spray.routing._
+import smpp.Deliver
+import spray.http.MediaTypes._
 import spray.http._
-import MediaTypes._
-import smpp.{Deliver, DeliverSm}
-import spray.httpx.unmarshalling._
-import spray.httpx.marshalling._
+import spray.routing._
 
 class SmscControl extends Actor with ActorLogging with SmscControlService {
+
   override implicit def actorRefFactory = context
   override def receive = runRoute(controlRoute)
 
@@ -17,7 +16,7 @@ class SmscControl extends Actor with ActorLogging with SmscControlService {
     val deliverSm = Deliver.sm(moMessage)
     val smppHandler = context.actorOf(Props[SmscHandler])
     smppHandler ! deliverSm
-    "OK"
+    s"Seq: ${deliverSm.header.seqNumber}"
   }
 }
 

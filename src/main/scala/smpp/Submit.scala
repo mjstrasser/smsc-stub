@@ -40,15 +40,21 @@ case class SubmitBody(serviceType: String, sourceAddrTon: Byte, sourceAddrNpi: B
     nullTermString(scheduleDeliveryTime) ++ nullTermString(validityPeriod) ++
     ByteString(registeredDelivery, replaceIfPresentFlag, dataCoding, smDefaultMsgId, smLength) ++
     nullTermString(shortMessage)
+  override def toString = s"(source: $sourceAddr dest: $destinationAddr msg: $shortMessage)"
 }
 
 case class SubmitRespBody(messageId: String) extends Body {
   def toByteString = nullTermString(messageId)
+  override def toString = s"(id: $messageId)"
 }
 
-case class SubmitSm(header: Header, body: SubmitBody) extends Pdu
+case class SubmitSm(header: Header, body: SubmitBody) extends Pdu {
+  val name = "submit"
+}
 
-case class SubmitSmResp(header: Header, body: SubmitRespBody) extends Pdu
+case class SubmitSmResp(header: Header, body: SubmitRespBody) extends Pdu {
+  val name = "submit_resp"
+}
 
 object Submit {
 
