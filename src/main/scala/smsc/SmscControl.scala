@@ -3,7 +3,6 @@ package smsc
 import akka.actor._
 import smpp.Deliver
 import spray.http.MediaTypes._
-import spray.http._
 import spray.routing._
 
 class SmscControl extends Actor with ActorLogging with SmscControlService {
@@ -12,11 +11,10 @@ class SmscControl extends Actor with ActorLogging with SmscControlService {
   override def receive = runRoute(controlRoute)
 
   def sendMoMessage(moMessage: MoMessage): String = {
-    log.info("Sending MO Message: {}", moMessage)
     val deliverSm = Deliver.sm(moMessage)
     val smppHandler = context.actorOf(Props[SmscHandler])
     smppHandler ! deliverSm
-    s"Seq: ${deliverSm.header.seqNumber}"
+    s"Seq: ${deliverSm.header.seqNumber}\n"
   }
 }
 

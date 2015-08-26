@@ -31,7 +31,7 @@ case class Header(commandId: Int, commandStatus: Int, seqNumber: Int) {
   // TODO: Confirm that all PDU headers are 16 bytes long.
   val length = 16
 
-  override def toString = s"(id: $commandId status: $commandStatus seq: $seqNumber)"
+  override def toString = f"(id: $commandId%08X status: $commandStatus%d seq: $seqNumber%d)"
 }
 
 /**
@@ -67,17 +67,20 @@ trait Pdu {
  */
 case class EmptyBody() extends Body {
   def toByteString = ByteString()
+  override def toString = ""
 }
 
 /** Class for the SMPP `generic_nack` PDU. */
 case class GenericNack(header: Header, body: EmptyBody) extends Pdu {
   val name = "nack"
+  override def toString = "(nack)"
 }
 
 /** Fake PDU for when no reply is required: only to [[smpp.GenericNack]]. */
 case class NoPdu(header: Header, body: EmptyBody) extends Pdu {
-    val name = "NO PDU!"
-    override def toByteString = ByteString()
+  val name = "NO PDU!"
+  override def toByteString = ByteString()
+  override def toString = "(none)"
 }
 
 /** Object with utilities for constructing and parsing generic PDU elements. */

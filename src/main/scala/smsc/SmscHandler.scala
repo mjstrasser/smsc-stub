@@ -25,17 +25,16 @@ class SmscHandler extends Actor with ActorLogging {
 
     case deliverSm: DeliverSm =>
       // DeliverSm object sent by the SmscControl actor.
-      log.info("Received DeliverSm: {}", deliverSm)
+      log.debug("Sending: {}", deliverSm)
       randomReceiver ! Write(deliverSm.toByteString)
 
     case Received(data) =>
       // Data received from the SmscStub actor.
-      log.info("Received data: {}", data)
       sender ! Write(responseTo(data))
 
     case PeerClosed =>
       // TCP connection closed.
-      log.info("Disconnected")
+      log.debug("Disconnected")
       context stop self
   }
 
@@ -48,19 +47,26 @@ class SmscHandler extends Actor with ActorLogging {
   def responseTo(data: ByteString): ByteString = {
 
     val request = Pdu.parseRequest(data)
-    log.info("Request: {}", request)
+    log.debug("Received: {}", request)
 
-    val response = Stub.responseTo(request)
-    log.info("Response: {}", response)
+    if ((request.header.commandId & 0x80000000) == 0) {
 
-    if (isReceiverBindResp(response))
+      // Request PDUs have the high bit unset.
+      val response = Stub.responseTo(request)
+      log.debug("Sending: {}", response)
+
+      if (isReceiverBindResp(response))
       // Receiver or transceiver bind: add the sender to the receivers list.
-      SmscHandler.receivers += sender
-    else if (response.header.commandId == CommandId.unbind_resp)
+        SmscHandler.receivers += sender
+      else if (response.header.commandId == CommandId.unbind_resp)
       // Unbind: remove this sender from the receivers list.
-      SmscHandler.receivers -= sender
+        SmscHandler.receivers -= sender
 
-    response.toByteString
+      response.toByteString
+    } else {
+      ByteString()
+    }
+
   }
 
   /**

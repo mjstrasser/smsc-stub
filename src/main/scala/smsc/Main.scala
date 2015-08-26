@@ -19,6 +19,7 @@ object Main extends App {
 
   import Tcp._
 
+  /** Settings loaded from configuration files. */
   val settings = new Settings
 
   implicit val system = ActorSystem("smsc-stub-server")

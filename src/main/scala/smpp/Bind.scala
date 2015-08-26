@@ -19,6 +19,7 @@ case class BindBody(systemId: String, password: String, systemType: String, inte
   def toByteString = nullTermString(systemId) ++ nullTermString(password) ++
     nullTermString(systemType) ++ ByteString(interfaceVersion, addrTon, addrNpi) ++
     nullTermString(addressRange)
+  override def toString = s"(systemId: $systemId)"
 }
 
 /**
@@ -33,7 +34,7 @@ case class BindRespBody(systemId: String) extends Body {
 
 /** Base class for bind request PDUs. */
 abstract class BindRequest extends Pdu
-/** Base class for bind repsonse PDUs. */
+/** Base class for bind response PDUs. */
 abstract class BindResponse extends Pdu
 
 /** Class for the SMPP `bind_transmitter` PDU. */
@@ -69,16 +70,16 @@ case class Unbind(header: Header, body: EmptyBody) extends BindRequest {
 }
 /** Class for the SMPP `unbind_resp` PDU. */
 case class UnbindResp(header: Header, body: EmptyBody) extends BindResponse {
-  val name = "unbind"
+  val name = "unbind_resp"
 }
 
 /** Class for the SMPP `enquire_link` PDU. */
 case class EnquireLink(header: Header, body: EmptyBody) extends Pdu {
-  val name = "bind_tx"
+  val name = "enquire"
 }
 /** Class for the SMPP `enquire_link_resp` PDU. */
 case class EnquireLinkResp(header: Header, body: EmptyBody) extends Pdu {
-  val name = "bind_tx"
+  val name = "enquire_resp"
 }
 
 object Bind {

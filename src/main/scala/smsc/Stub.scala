@@ -11,7 +11,7 @@ import smpp._
   */
 object Stub {
 
-  val StubSystemId = "SMSC Stub Server"
+  val StubSystemId = "SMSCStub"
 
   /**
    * Creates a successful response PDU for a request with `command_status` set to `ESME_ROK`.

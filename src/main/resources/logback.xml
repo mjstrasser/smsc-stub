@@ -1,0 +1,24 @@
+<configuration scan="true">
+
+    <property name="LOG_DIR" value="/logstore/esap/apps/SmscStub/log"/>
+
+    <appender name="DEBUG" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_DIR}/debug_SmscStub.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_DIR}/debug_SmscStub.log.%d{yyyy-MM-dd}</fileNamePattern>
+            <maxHistory>30</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%date{ISO8601} %-5level %logger{36} %X{akkaSource} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender>
+
+    </appender>
+
+    <root level="debug">
+        <appender-ref ref="DEBUG"/>
+    </root>
+
+</configuration>
