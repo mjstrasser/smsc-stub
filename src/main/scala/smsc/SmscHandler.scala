@@ -3,6 +3,7 @@ package smsc
 import akka.actor.{Actor, ActorLogging, ActorRef}
 import akka.io.Tcp
 import akka.util.ByteString
+import org.slf4j.LoggerFactory
 import smpp._
 
 import scala.collection.mutable.ListBuffer
@@ -25,9 +26,10 @@ class SmscHandler extends Actor with ActorLogging {
 
     case deliverSm: DeliverSm =>
       // DeliverSm object sent by the SmscControl actor.
-      log.debug("Sending: {}", deliverSm)
+      log.info("Sending: {}", deliverSm)
       val deliverBytes = deliverSm.toByteString
-//      log.debug("As bytes: {}", deliverBytes)
+      log.debug("As bytes: {}", deliverBytes)
+      SmscHandler.logTiming(deliverSm)
       randomReceiver ! Write(deliverBytes)
 
     case Received(data) =>
@@ -49,13 +51,16 @@ class SmscHandler extends Actor with ActorLogging {
   def responseTo(data: ByteString): ByteString = {
 
     val request = Pdu.parseRequest(data)
-    log.debug("Received: {}", request)
+    log.info("Received: {}", request)
+    log.debug("As bytes: {}", data)
+    SmscHandler.logTiming(request)
 
     if ((request.header.commandId & 0x80000000) == 0) {
 
       // Request PDUs have the high bit unset.
       val response = Stub.responseTo(request)
-      log.debug("Sending: {}", response)
+      log.info("Sending: {}", response)
+      log.debug("As bytes: {}", response.toByteString)
 
       if (isReceiverBindResp(response))
       // Receiver or transceiver bind: add the sender to the receivers list.
@@ -101,4 +106,18 @@ object SmscHandler {
    * connections.
    */
   val receivers = ListBuffer[ActorRef]()
+
+  /** Special logger for end-to-end timings. */
+  val endToEnd = LoggerFactory.getLogger("EndToEnd")
+
+  /**
+   * Logs the basics of the message for a DeliverSM or SubmitSM.
+   */
+  def logTiming(pdu: Pdu) = pdu match {
+    case SubmitSm(_, submitBody) =>
+      endToEnd.info("{},{},{}", submitBody.sourceAddr, submitBody.destinationAddr, submitBody.shortMessage)
+    case DeliverSm(_, deliverBody) =>
+      endToEnd.info("{},{},{}", deliverBody.sourceAddr, deliverBody.destinationAddr, deliverBody.shortMessage)
+    case _ =>
+  }
 }

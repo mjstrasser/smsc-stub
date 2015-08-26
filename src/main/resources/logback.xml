@@ -1,4 +1,4 @@
-<configuration scan="true">
+<configuration scan="true" scanPeriod="30 seconds">
 
     <property name="LOG_DIR" value="/logstore/esap/apps/SmscStub/log"/>
 
@@ -13,9 +13,20 @@
         </encoder>
     </appender>
 
-    <appender>
-
+    <appender name="END_TO_END" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_DIR}/end_to_end.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_DIR}/end_to_end.log.%d{yyyy-MM-dd}</fileNamePattern>
+            <maxHistory>30</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%date{yyyy-MM-dd','hh:mm:ss'.'SSS},%msg%n</pattern>
+        </encoder>
     </appender>
+
+    <logger name="EndToEnd" level="INFO" additivity="false">
+        <appender-ref ref="END_TO_END"/>
+    </logger>
 
     <root level="debug">
         <appender-ref ref="DEBUG"/>
