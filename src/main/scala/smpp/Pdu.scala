@@ -1,6 +1,7 @@
 package smpp
 
 import akka.util.{ByteIterator, ByteString, ByteStringBuilder}
+import org.slf4j.LoggerFactory
 
 /**
  * Header of SMPP PDUs excluding the `command_length`, which is calculated when
@@ -86,6 +87,8 @@ case class NoPdu(header: Header, body: EmptyBody) extends Pdu {
 /** Object with utilities for constructing and parsing generic PDU elements. */
 object Pdu {
 
+  final val log = LoggerFactory.getLogger(Pdu.getClass)
+
   /** Only version 3.4 of SMPP is supported. */
   val SmppVersion: Byte = 0x34
 
@@ -146,9 +149,9 @@ object Pdu {
   }
 
   /**
-   * Parses an SMPP request PDU from data bytes.
+   * Parses one SMPP PDUs from data bytes.
    *
-   * These PDUs are currently supported:
+   * These PDUs are currently known:
    *
    *  - [[BindTransmitter]]
    *  - [[BindTransceiver]]
@@ -159,14 +162,13 @@ object Pdu {
    *  - [[DeliverSmResp]]
    *  - [[GenericNack]]
    *
-   * @param data the bytes to parse
-   * @return the SMPP request PDU
+   * @param iterator over the bytes to parse
+   * @return the SMPP PDU
    */
-  def parseRequest(data: ByteString): Pdu = {
-    val iterator = data.iterator
+  def parsePdu(iterator: ByteIterator): Pdu = {
+
     val commandLength = iterator.getInt
-    if (commandLength != data.length)
-      throw new IllegalArgumentException(s"Invalid length octet in PDU data: $data")
+    log.debug("Command length: {}", commandLength)
     val header = parseHeader(iterator)
     import CommandId._
     header.commandId match {
@@ -176,7 +178,7 @@ object Pdu {
       case `unbind` => Unbind(header, EmptyBody())
       case `enquire_link` => EnquireLink(header, EmptyBody())
       case `submit_sm` => SubmitSm(header, Submit.parseBody(iterator))
-      case `deliver_sm_resp` => DeliverSmResp(header, DeliverRespBody())
+      case `deliver_sm_resp` => DeliverSmResp(header, Deliver.parseRespBody(iterator))
       case `generic_nack` => GenericNack(header, EmptyBody())
       case _ => throw new IllegalArgumentException(f"Unimplemented command ID ${header.commandId}%08X")
     }

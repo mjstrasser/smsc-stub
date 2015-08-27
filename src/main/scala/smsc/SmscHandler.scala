@@ -2,7 +2,7 @@ package smsc
 
 import akka.actor.{Actor, ActorLogging, ActorRef, Props}
 import akka.io.Tcp
-import akka.util.ByteString
+import akka.util.{ByteIterator, ByteString}
 import smpp._
 
 import scala.collection.mutable.ListBuffer
@@ -19,6 +19,7 @@ import scala.util.Random
  */
 class SmscHandler extends Actor with ActorLogging {
 
+  import SmscHandler._
   import Tcp._
 
   val endToEndLogger = context.actorOf(Props[EndToEndLogger])
@@ -35,7 +36,10 @@ class SmscHandler extends Actor with ActorLogging {
 
     case Received(data) =>
       // Data received from the SmscStub actor.
-      sender ! Write(responseTo(data))
+      log.debug("Received bytes: {}", data)
+      val iterator = data.iterator
+      while (iterator.hasNext)
+        sender ! Write(responseTo(iterator))
 
     case PeerClosed =>
       // TCP connection closed.
@@ -46,14 +50,13 @@ class SmscHandler extends Actor with ActorLogging {
   /**
    * Generate a response to a PDU received over TCP (via [[SmscStub]]).
    *
-   * @param data the PDU as bytes
+   * @param iterator an iterator with the bytes
    * @return a PDU as bytes
    */
-  def responseTo(data: ByteString): ByteString = {
+  def responseTo(iterator: ByteIterator): ByteString = {
 
-    val request = Pdu.parseRequest(data)
+    val request = Pdu.parsePdu(iterator)
     log.info("Received: {}", request)
-    log.debug("As bytes: {}", data)
     endToEndLogger ! request
 
     if ((request.header.commandId & 0x80000000) == 0) {
@@ -64,30 +67,20 @@ class SmscHandler extends Actor with ActorLogging {
       log.debug("As bytes: {}", response.toByteString)
 
       if (isReceiverBindResp(response))
-      // Receiver or transceiver bind: add the sender to the receivers list.
-        SmscHandler.receivers += sender
+        // Receiver or transceiver bind: add the sender to the receivers list.
+        addReceiver(sender())
       else if (response.header.commandId == CommandId.unbind_resp)
-      // Unbind: remove this sender from the receivers list.
-        SmscHandler.receivers -= sender
+        // Unbind: remove this sender from the receivers list.
+        removeReceiver(sender())
 
       response.toByteString
     } else {
+      // Got a PDU that does not require a response.
       ByteString()
     }
 
   }
 
-  /**
-   * Randomly select an SMPP receiver from the current list.
-   *
-   * @return one of the receivers in the list
-   */
-  def randomReceiver = {
-    val length = SmscHandler.receivers.length
-    if (length < 1)
-      throw new IllegalStateException("No receivers have been bound")
-    SmscHandler.receivers(Random.nextInt(length))
-  }
 
   /**
    * Return true if the response PDU is a successful `bind_receiver_resp` or `bind_transceiver_resp`.
@@ -106,5 +99,38 @@ object SmscHandler {
    * A variable list of actors for bound SMPP receiver or transceiver
    * connections.
    */
-  val receivers = ListBuffer[ActorRef]()
+  private val receivers = ListBuffer[ActorRef]()
+
+  /**
+   * Adds an actor ref synchronously to the list.
+   *
+   * @param ref reference to the actor
+   * @return count of receivers in the list after addition
+   */
+  def addReceiver(ref: ActorRef) = synchronized {
+    receivers += ref
+    receivers.length
+  }
+
+  /**
+   * Removes an actor ref synchronously from the list.
+   *
+   * @param ref reference to the actor
+   * @return count of receivers in the list after removal
+   */
+  def removeReceiver(ref: ActorRef) = synchronized {
+    receivers -= ref
+    receivers.length
+  }
+
+  /**
+   * Randomly selects a receiver synchronously from the list.
+   * @return one of the receivers in the list
+   */
+  def randomReceiver = synchronized {
+    val length = receivers.length
+    if (length < 1)
+      throw new IllegalStateException("No receivers have been bound")
+    receivers(Random.nextInt(length))
+  }
 }

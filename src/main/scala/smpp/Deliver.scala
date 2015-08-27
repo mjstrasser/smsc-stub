@@ -27,9 +27,9 @@ case class DeliverBody(serviceType: String, sourceAddrTon: Byte, sourceAddrNpi: 
 /**
  * The SMPP `deliver_sm_resp` PDU has a one-byte body that is always null.
  */
-case class DeliverRespBody() extends Body {
-  def toByteString = ByteString(0)
-  override def toString = "(id: 0)"
+case class DeliverRespBody(id: Byte) extends Body {
+  def toByteString = ByteString(id)
+  override def toString = s"(id: $id)"
 }
 
 case class DeliverSm(header: Header, body: DeliverBody) extends Pdu {
@@ -42,7 +42,7 @@ case class DeliverSmResp(header: Header, body: DeliverRespBody) extends Pdu {
 
 object Deliver {
 
-  def getBody(iter: ByteIterator): DeliverBody = {
+  def parseBody(iter: ByteIterator): DeliverBody = {
     val serviceType = parseNullTermString(iter)
     val sourceAddrTon = iter.getByte
     val sourceAddrNpi = iter.getByte
@@ -65,6 +65,8 @@ object Deliver {
       esmClass, protocolId, priorityFlag, scheduleDeliveryTime, validityPeriod, registeredDelivery,
       replaceIfPresentFlag, dataCoding, smDefaultMsgId, smLength, shortMessage)
   }
+  
+  def parseRespBody(iter: ByteIterator): DeliverRespBody = new DeliverRespBody(iter.getByte)
 
   def sm(moMessage: MoMessage) = {
     val header = Header(CommandId.deliver_sm, CommandStatus.NULL, deliverCounter.incrementAndGet)
