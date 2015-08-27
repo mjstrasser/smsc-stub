@@ -16,6 +16,8 @@ The following PDU transactions are implemented:
 - `enquire_link` -> `enquire_link_resp`
 - `submit_sm` (without optional parameters) -> `submit_sm_resp`
 - `generic_nack`
+- `deliver_sm` (without optional parameters) -> `deliver_sm_resp`
+- `cancel_sm` -> `cancel_sm_resp`
 
 ## To do
 
@@ -27,13 +29,11 @@ ESME -> SMSC PDU transactions:
 - `replace_sm` -> `replace_sm_resp`
 - `data_sm` -> `data_sm_resp`
 - `query_sm` -> `query_sm_resp`
-- `cancel_sm` -> `cancel_sm_resp`
 - `alert_notification`
 
 SMSC -> ESME:
 
 - `enquire_link` -> `enquire_link_resp`
 - `unbind` -> `unbind_resp`
-- `deliver_sm` -> `deliver_sm_resp`
 - `generic_nack`
 - `alert_notification`

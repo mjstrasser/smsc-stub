@@ -28,6 +28,7 @@ object Stub {
       case EnquireLink(header, body) => EnquireLinkResp(respHeader(header, ESME_ROK), body)
       case SubmitSm(header, body) => SubmitSmResp(respHeader(header, ESME_ROK), Submit.respBody(newMessageId))
       case GenericNack(header, body) => NoPdu(header, body)
+      case CancelSm(header, body) => CancelSmResp(respHeader(header, ESME_ROK), EmptyBody())
     }
   }
 

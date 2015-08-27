@@ -179,6 +179,7 @@ object Pdu {
       case `enquire_link` => EnquireLink(header, EmptyBody())
       case `submit_sm` => SubmitSm(header, Submit.parseBody(iterator))
       case `deliver_sm_resp` => DeliverSmResp(header, Deliver.parseRespBody(iterator))
+      case `cancel_sm` => CancelSm(header, Cancel.parseBody(iterator))
       case `generic_nack` => GenericNack(header, EmptyBody())
       case _ => throw new IllegalArgumentException(f"Unimplemented command ID ${header.commandId}%08X")
     }

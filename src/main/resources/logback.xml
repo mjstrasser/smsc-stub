@@ -20,7 +20,7 @@
             <maxHistory>30</maxHistory>
         </rollingPolicy>
         <encoder>
-            <pattern>%d{yyyy-MM-dd},%d{hh:mm:ss'.'SSS},%msg%n</pattern>
+            <pattern>%d{yyyy-MM-dd},%d{HH:mm:ss'.'SSS},%msg%n</pattern>
         </encoder>
     </appender>
 
@@ -28,7 +28,7 @@
         <appender-ref ref="END_TO_END"/>
     </logger>
 
-    <root level="debug">
+    <root level="info">
         <appender-ref ref="DEBUG"/>
     </root>
 
