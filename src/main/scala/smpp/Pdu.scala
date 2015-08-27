@@ -156,6 +156,7 @@ object Pdu {
    *  - [[Unbind]]
    *  - [[EnquireLink]]
    *  - [[SubmitSm]]
+   *  - [[DeliverSmResp]]
    *  - [[GenericNack]]
    *
    * @param data the bytes to parse
@@ -165,7 +166,7 @@ object Pdu {
     val iterator = data.iterator
     val commandLength = iterator.getInt
     if (commandLength != data.length)
-      throw new IllegalArgumentException("Invalid length octet in PDU data")
+      throw new IllegalArgumentException(s"Invalid length octet in PDU data: $data")
     val header = parseHeader(iterator)
     import CommandId._
     header.commandId match {
@@ -175,8 +176,9 @@ object Pdu {
       case `unbind` => Unbind(header, EmptyBody())
       case `enquire_link` => EnquireLink(header, EmptyBody())
       case `submit_sm` => SubmitSm(header, Submit.parseBody(iterator))
+      case `deliver_sm_resp` => DeliverSmResp(header, DeliverRespBody())
       case `generic_nack` => GenericNack(header, EmptyBody())
-      case _ => throw new NotImplementedError(s"Unimplemented command ID ${header.commandId}")
+      case _ => throw new IllegalArgumentException(f"Unimplemented command ID ${header.commandId}%08X")
     }
   }
 
