@@ -1,6 +1,7 @@
 package smsc
 
-import akka.actor.{Actor, ActorLogging, ActorRef, Props}
+import akka.actor.{Actor, ActorRef}
+import akka.event.Logging
 import akka.io.Tcp
 import akka.util.{ByteIterator, ByteString}
 import smpp._
@@ -17,12 +18,13 @@ import scala.util.Random
  *  - [[SmscStub]] objects from [[SmscControl]] actor to send to a bound receiver
  *    or transceiver ESME.
  */
-class SmscHandler extends Actor with ActorLogging {
+class SmscHandler extends Actor {
 
   import SmscHandler._
   import Tcp._
 
-  val endToEndLogger = context.actorOf(Props[EndToEndLogger])
+  /** Standard Akka asynchronous logger. */
+  val log = Logging(context.system, this)
 
   def receive = {
 
@@ -31,7 +33,7 @@ class SmscHandler extends Actor with ActorLogging {
       log.info("Sending: {}", deliverSm)
       val deliverBytes = deliverSm.toByteString
       log.debug("As bytes: {}", deliverBytes)
-      endToEndLogger ! deliverSm
+      logEndToEnd(deliverSm)
       randomReceiver ! Write(deliverBytes)
 
     case Received(data) =>
@@ -57,7 +59,7 @@ class SmscHandler extends Actor with ActorLogging {
 
     val request = Pdu.parsePdu(iterator)
     log.info("Received: {}", request)
-    endToEndLogger ! request
+    logEndToEnd(request)
 
     if ((request.header.commandId & 0x80000000) == 0) {
 
@@ -83,7 +85,7 @@ class SmscHandler extends Actor with ActorLogging {
 
 
   /**
-   * Return true if the response PDU is a successful `bind_receiver_resp` or `bind_transceiver_resp`.
+   * Returns true if the response PDU is a successful `bind_receiver_resp` or `bind_transceiver_resp`.
    */
   def isReceiverBindResp(response: Pdu) =
     response match {
@@ -92,6 +94,24 @@ class SmscHandler extends Actor with ActorLogging {
       case _ => false
     }
 
+  /**
+   * Second Akka logger, used only for end-to-end logging of DeliverSm and SubmitSm
+   * messages for performance measurement purposes.
+   *
+   * The second argument `logSource` is munged into a logger called
+   * `EndToEnd(akka://smsc-stub-server)` that includes the actor system name. This
+   * longer name must be used in Logback configuration.
+   */
+  val e2eLog = Logging(context.system, "EndToEnd")
+  /**
+   * Logs a [[DeliverSm]] or [[SubmitSm]] PDU to the end-to-end logger.
+   * @param pdu the PDU to log
+   */
+  private def logEndToEnd(pdu: Pdu) = pdu match {
+    case DeliverSm(header, body) => e2eLog.info("{},{},{}", body.sourceAddr, body.destinationAddr, body.shortMessage)
+    case SubmitSm(header, body) => e2eLog.info("{},{},{}", body.sourceAddr, body.destinationAddr, body.shortMessage)
+    case _ =>
+  }
 }
 
 object SmscHandler {
