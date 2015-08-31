@@ -9,12 +9,8 @@ import smpp.Pdu._
  * Currently without any optional parameters.
  *
  * @param serviceType
- * @param sourceAddrTon
- * @param sourceAddrNpi
- * @param sourceAddr
- * @param destAddrTon
- * @param destAddrNpi
- * @param destinationAddr
+ * @param source
+ * @param dest
  * @param esmClass
  * @param protocolId
  * @param priorityFlag
@@ -27,20 +23,18 @@ import smpp.Pdu._
  * @param smLength
  * @param shortMessage
  */
-case class SubmitBody(serviceType: String, sourceAddrTon: Byte, sourceAddrNpi: Byte, sourceAddr: String,
-                      destAddrTon: Byte, destAddrNpi: Byte, destinationAddr: String,
+case class SubmitBody(serviceType: String, source: Address, dest: Address,
                       esmClass: Byte, protocolId: Byte, priorityFlag: Byte,
                       scheduleDeliveryTime: String, validityPeriod: String,
                       registeredDelivery: Byte, replaceIfPresentFlag: Byte, dataCoding: Byte,
                       smDefaultMsgId: Byte, smLength: Byte, shortMessage: String) extends Body {
   def toByteString = nullTermString(serviceType) ++
-    ByteString(sourceAddrTon, sourceAddrNpi) ++ nullTermString(sourceAddr) ++
-    ByteString(destAddrTon, destAddrNpi) ++ nullTermString(destinationAddr) ++
+    source.toByteString ++ dest.toByteString ++
     ByteString(esmClass, protocolId, priorityFlag) ++
     nullTermString(scheduleDeliveryTime) ++ nullTermString(validityPeriod) ++
     ByteString(registeredDelivery, replaceIfPresentFlag, dataCoding, smDefaultMsgId, smLength) ++
     octetString(shortMessage)
-  override def toString = s"(source: $sourceAddr dest: $destinationAddr msg: $shortMessage)"
+  override def toString = s"(source: $source dest: $dest msg: $shortMessage)"
 }
 
 case class SubmitRespBody(messageId: String) extends Body {
@@ -66,12 +60,8 @@ object Submit {
    */
   def parseBody(iter: ByteIterator): SubmitBody = {
     val serviceType = parseNullTermString(iter)
-    val sourceAddrTon = iter.getByte
-    val sourceAddrNpi = iter.getByte
-    val sourceAddr = parseNullTermString(iter)
-    val destAddrTon = iter.getByte
-    val destAddrNpi = iter.getByte
-    val destinationAddr = parseNullTermString(iter)
+    val source = Address.parseAddress(iter)
+    val dest = Address.parseAddress(iter)
     val esmClass = iter.getByte
     val protocolId = iter.getByte
     val priorityFlag = iter.getByte
@@ -83,7 +73,7 @@ object Submit {
     val smDefaultMsgId = iter.getByte
     val smLength = iter.getByte
     val shortMessage = parseOctetString(iter, smLength)
-    SubmitBody(serviceType, sourceAddrTon, sourceAddrNpi, sourceAddr, destAddrTon, destAddrNpi, destinationAddr,
+    SubmitBody(serviceType, source, dest,
       esmClass, protocolId, priorityFlag, scheduleDeliveryTime, validityPeriod, registeredDelivery,
       replaceIfPresentFlag, dataCoding, smDefaultMsgId, smLength, shortMessage)
   }

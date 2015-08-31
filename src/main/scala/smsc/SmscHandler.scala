@@ -108,8 +108,8 @@ class SmscHandler extends Actor {
    * @param pdu the PDU to log
    */
   private def logEndToEnd(pdu: Pdu) = pdu match {
-    case DeliverSm(header, body) => e2eLog.info("{},{},{}", body.sourceAddr, body.destinationAddr, body.shortMessage)
-    case SubmitSm(header, body) => e2eLog.info("{},{},{}", body.sourceAddr, body.destinationAddr, body.shortMessage)
+    case DeliverSm(header, body) => e2eLog.info("{},{},{}", body.source.addr, body.dest.addr, body.shortMessage)
+    case SubmitSm(header, body) => e2eLog.info("{},{},{}", body.source.addr, body.dest.addr, body.shortMessage)
     case _ =>
   }
 }

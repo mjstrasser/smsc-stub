@@ -33,7 +33,7 @@ class PduTest extends FlatSpec {
   }
 
   "Pdu#parseRequest" should "correctly parse a ByteString" in {
-    assert(Pdu.parseRequest(bindTxBytes) == bindTxPdu)
+    assert(Pdu.parsePdu(bindTxBytes.iterator) == bindTxPdu)
   }
 
 }

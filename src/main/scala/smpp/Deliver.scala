@@ -8,20 +8,18 @@ import smsc.MoMessage
 
 // TODO: Combine DeliverBody with SubmitBody because they are the same.
 
-case class DeliverBody(serviceType: String, sourceAddrTon: Byte, sourceAddrNpi: Byte, sourceAddr: String,
-                      destAddrTon: Byte, destAddrNpi: Byte, destinationAddr: String,
+case class DeliverBody(serviceType: String, source: Address, dest: Address,
                       esmClass: Byte, protocolId: Byte, priorityFlag: Byte,
                       scheduleDeliveryTime: String, validityPeriod: String,
                       registeredDelivery: Byte, replaceIfPresentFlag: Byte, dataCoding: Byte,
                       smDefaultMsgId: Byte, smLength: Byte, shortMessage: String) extends Body {
   def toByteString = nullTermString(serviceType) ++
-    ByteString(sourceAddrTon, sourceAddrNpi) ++ nullTermString(sourceAddr) ++
-    ByteString(destAddrTon, destAddrNpi) ++ nullTermString(destinationAddr) ++
+    source.toByteString ++ dest.toByteString ++
     ByteString(esmClass, protocolId, priorityFlag) ++
     nullTermString(scheduleDeliveryTime) ++ nullTermString(validityPeriod) ++
     ByteString(registeredDelivery, replaceIfPresentFlag, dataCoding, smDefaultMsgId, smLength) ++
     octetString(shortMessage)
-  override def toString = s"(source: $sourceAddr dest: $destinationAddr msg: $shortMessage)"
+  override def toString = s"(source: $source dest: $dest msg: $shortMessage)"
 }
 
 /**
@@ -42,14 +40,12 @@ case class DeliverSmResp(header: Header, body: DeliverRespBody) extends Pdu {
 
 object Deliver {
 
+  import Address._
+
   def parseBody(iter: ByteIterator): DeliverBody = {
     val serviceType = parseNullTermString(iter)
-    val sourceAddrTon = iter.getByte
-    val sourceAddrNpi = iter.getByte
-    val sourceAddr = parseNullTermString(iter)
-    val destAddrTon = iter.getByte
-    val destAddrNpi = iter.getByte
-    val destinationAddr = parseNullTermString(iter)
+    val source = parseAddress(iter)
+    val dest = parseAddress(iter)
     val esmClass = iter.getByte
     val protocolId = iter.getByte
     val priorityFlag = iter.getByte
@@ -61,7 +57,7 @@ object Deliver {
     val smDefaultMsgId = iter.getByte
     val smLength = iter.getByte
     val shortMessage = parseOctetString(iter, smLength)
-    DeliverBody(serviceType, sourceAddrTon, sourceAddrNpi, sourceAddr, destAddrTon, destAddrNpi, destinationAddr,
+    DeliverBody(serviceType, source, dest,
       esmClass, protocolId, priorityFlag, scheduleDeliveryTime, validityPeriod, registeredDelivery,
       replaceIfPresentFlag, dataCoding, smDefaultMsgId, smLength, shortMessage)
   }
@@ -70,8 +66,9 @@ object Deliver {
 
   def sm(moMessage: MoMessage) = {
     val header = Header(CommandId.deliver_sm, CommandStatus.NULL, deliverCounter.incrementAndGet)
-    val body = DeliverBody("", 1, 1, moMessage.sender,
-                           0, 1, moMessage.recipient,
+    val body = DeliverBody("",
+                           Address(ton_international, npi_ISDN, moMessage.sender),
+                           Address(ton_unknown, npi_unknown, moMessage.recipient),
                            0, 0, 1,
                            "", "",
                            0, 0, 0,
