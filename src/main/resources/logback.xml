@@ -24,8 +24,7 @@
         </encoder>
     </appender>
 
-    <!-- When akka.event.Logging is given a string as logSource it appends context information. -->
-    <logger name="EndToEnd(akka://smsc-stub-server)" level="INFO" additivity="false">
+    <logger name="EndToEnd" level="INFO" additivity="false">
         <appender-ref ref="END_TO_END"/>
     </logger>
 

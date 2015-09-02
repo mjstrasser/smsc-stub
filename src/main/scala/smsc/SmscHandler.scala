@@ -98,11 +98,9 @@ class SmscHandler extends Actor {
    * Second Akka logger, used only for end-to-end logging of DeliverSm and SubmitSm
    * messages for performance measurement purposes.
    *
-   * The second argument `logSource` is munged into a logger called
-   * `EndToEnd(akka://smsc-stub-server)` that includes the actor system name. This
-   * longer name must be used in Logback configuration.
+   * Calling `Logging.getLogger` is necessary to create a logger with category "EndToEnd".
    */
-  val e2eLog = Logging(context.system, "EndToEnd")
+  val e2eLog = Logging.getLogger(context.system, "EndToEnd")
   /**
    * Logs a [[DeliverSm]] or [[SubmitSm]] PDU to the end-to-end logger.
    * @param pdu the PDU to log
