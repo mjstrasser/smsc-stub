@@ -66,9 +66,7 @@ object Deliver {
 
   def sm(moMessage: MoMessage) = {
     val header = Header(CommandId.deliver_sm, CommandStatus.NULL, deliverCounter.incrementAndGet)
-    val body = DeliverBody("",
-                           Address(ton_international, npi_ISDN, moMessage.sender),
-                           Address(ton_unknown, npi_unknown, moMessage.recipient),
+    val body = DeliverBody("", Address(moMessage.sender), Address(moMessage.recipient),
                            0, 0, 1,
                            "", "",
                            0, 0, 0,

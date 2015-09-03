@@ -36,4 +36,30 @@ object Address {
   val npi_wap_client_id: Byte     = 0x12
 
   def parseAddress(iter: ByteIterator) = new Address(iter.getByte, iter.getByte, parseNullTermString(iter))
+
+  /**
+   * Constructs an Address object with TON and NPI to match the specified address string.
+   *
+   * - For Australian MSISDNs they are `ton_international` and `npi_ISDN`
+   * - For International MSISDNs they are `ton_international` and `npi_ISDN`
+   * - For short codes (e.g. 1776) they are `ton_national` and `npi_ISDN`
+   * - For alphabetic strings (e.g. TelstraData) they are `ton_alphanumeric` and `npi_unknown`
+   *
+   * @param addr an address string
+   * @return the appropriate Address object
+   */
+  def apply(addr: String) = {
+    val AU_MSISDN = "^\\+?614\\d{8}$".r
+    val INTL_MSISDN = "^\\+\\d+$".r
+    val AU_SHORT = "^1\\d+$".r
+    val ALPHA = "^[^\\d]+$".r
+    val (ton, npi) = addr match {
+      case AU_MSISDN() => (ton_international, npi_ISDN)
+      case INTL_MSISDN() => (ton_international, npi_ISDN)
+      case AU_SHORT() => (ton_national, npi_ISDN)
+      case ALPHA() => (ton_alphanumeric, npi_unknown)
+      case _ => (ton_unknown, npi_unknown)
+    }
+    new Address(ton, npi, addr)
+  }
 }
