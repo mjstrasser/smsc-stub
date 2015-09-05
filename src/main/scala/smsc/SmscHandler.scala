@@ -1,6 +1,6 @@
 package smsc
 
-import akka.actor.{Actor, ActorRef}
+import akka.actor.{Actor, ActorLogging, ActorRef}
 import akka.event.Logging
 import akka.io.Tcp
 import akka.util.{ByteIterator, ByteString}
@@ -18,13 +18,10 @@ import scala.util.Random
  *  - [[SmscStub]] objects from [[SmscControl]] actor to send to a bound receiver
  *    or transceiver ESME.
  */
-class SmscHandler extends Actor {
+class SmscHandler extends Actor with ActorLogging {
 
   import SmscHandler._
   import Tcp._
-
-  /** Standard Akka asynchronous logger. */
-  val log = Logging(context.system, this)
 
   def receive = {
 
@@ -110,14 +107,6 @@ class SmscHandler extends Actor {
     case SubmitSm(header, body) => e2eLog.info("{},{},{}", body.source.addr, body.dest.addr, body.shortMessage)
     case _ =>
   }
-}
-
-object SmscHandler {
-  /**
-   * A variable list of actors for bound SMPP receiver or transceiver
-   * connections.
-   */
-  private val receivers = ListBuffer[ActorRef]()
 
   /**
    * Adds an actor ref synchronously to the list.
@@ -126,8 +115,8 @@ object SmscHandler {
    * @return count of receivers in the list after addition
    */
   def addReceiver(ref: ActorRef) = synchronized {
+    log.debug(s"Adding receiver $ref")
     receivers += ref
-    receivers.length
   }
 
   /**
@@ -137,18 +126,29 @@ object SmscHandler {
    * @return count of receivers in the list after removal
    */
   def removeReceiver(ref: ActorRef) = synchronized {
+    log.debug(s"Removing receiver $ref")
     receivers -= ref
-    receivers.length
   }
 
   /**
    * Randomly selects a receiver synchronously from the list.
    * @return one of the receivers in the list
    */
-  def randomReceiver = synchronized {
-    val length = receivers.length
-    if (length < 1)
+  def randomReceiver: ActorRef = synchronized {
+    if (receivers.isEmpty)
       throw new IllegalStateException("No receivers have been bound")
-    receivers(Random.nextInt(length))
+    val receiver = receivers(Random.nextInt(receivers.size))
+    log.debug(s"Retrieved receiver $receiver")
+    receiver
   }
+
+}
+
+object SmscHandler {
+  /**
+   * A synchronous list of actors for bound SMPP receiver or transceiver
+   * connections.
+   */
+  private val receivers = ListBuffer[ActorRef]()
+
 }

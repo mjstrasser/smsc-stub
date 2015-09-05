@@ -22,6 +22,13 @@ class SmscControl extends Actor with ActorLogging with SmscControlService {
     smppHandler ! deliverSm
     s"Seq: ${deliverSm.header.seqNumber}\n"
   }
+
+  def shutdownStub: String = {
+    log.info("Shutting down")
+    context.system.shutdown()
+    // TODO: Send unbind PDUs to bound ESMEs.
+    "Shutting down\n"
+  }
 }
 
 /**
@@ -30,6 +37,7 @@ class SmscControl extends Actor with ActorLogging with SmscControlService {
 trait SmscControlService extends HttpService {
 
   def sendMoMessage(moMessage: MoMessage): String
+  def shutdownStub: String
 
   /**
    * Specification of the `/send` URI as a Spray route.
@@ -40,7 +48,7 @@ trait SmscControlService extends HttpService {
    *  - `to`: the receiving service number (e.g. a PSMS service number like 1776)
    *  - `msg`: the message to send
    */
-  val controlRoute = path("send") {
+  val sendRoute = path("send") {
     get {
       parameters('from, 'to, 'msg).as(MoMessage) { moMessage =>
         respondWithMediaType(`text/plain`) {
@@ -51,5 +59,19 @@ trait SmscControlService extends HttpService {
       }
     }
   }
+  /**
+   * Specification of the `/shutdown` URI as a Spray route.
+   */
+  val shutdownRoute = path("shutdown") {
+    get {
+      respondWithMediaType(`text/plain`) {
+        complete {
+          shutdownStub
+        }
+      }
+    }
+  }
+  /** Control is the combination of send and shutdown. */
+  val controlRoute = sendRoute ~ shutdownRoute
 
 }
