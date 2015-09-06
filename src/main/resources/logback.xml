@@ -1,9 +1,9 @@
 <configuration scan="true" scanPeriod="30 seconds">
 
-    <property name="LOG_DIR" value="/logstore/esap/apps/SmscStub/log"/>
+    <property name="LOG_DIR" value="logs"/>
 
-    <appender name="DEBUG" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>${LOG_DIR}/debug_SmscStub.log</file>
+    <appender name="SMSC_STUB" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_DIR}/smsc-stub.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <fileNamePattern>${LOG_DIR}/debug_SmscStub.log.%d{yyyy-MM-dd}</fileNamePattern>
             <maxHistory>30</maxHistory>
@@ -14,7 +14,7 @@
     </appender>
 
     <appender name="END_TO_END" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>${LOG_DIR}/end_to_end.log</file>
+        <file>${LOG_DIR}/end-to-end.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <fileNamePattern>${LOG_DIR}/end_to_end.log.%d{yyyy-MM-dd}</fileNamePattern>
             <maxHistory>30</maxHistory>
@@ -29,7 +29,7 @@
     </logger>
 
     <root level="info">
-        <appender-ref ref="DEBUG"/>
+        <appender-ref ref="SMSC_STUB"/>
     </root>
 
 </configuration>

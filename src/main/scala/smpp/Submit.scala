@@ -4,24 +4,9 @@ import akka.util.{ByteIterator, ByteString}
 import smpp.Pdu._
 
 /**
- * The body of a submit request PDU.
+ * The body of a submit request PDU sent from an ESME to the SMSC.
  *
  * Currently without any optional parameters.
- *
- * @param serviceType
- * @param source
- * @param dest
- * @param esmClass
- * @param protocolId
- * @param priorityFlag
- * @param scheduleDeliveryTime
- * @param validityPeriod
- * @param registeredDelivery
- * @param replaceIfPresentFlag
- * @param dataCoding
- * @param smDefaultMsgId
- * @param smLength
- * @param shortMessage
  */
 case class SubmitBody(serviceType: String, source: Address, dest: Address,
                       esmClass: Byte, protocolId: Byte, priorityFlag: Byte,

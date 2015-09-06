@@ -8,6 +8,11 @@ import smsc.MoMessage
 
 // TODO: Combine DeliverBody with SubmitBody because they are the same.
 
+/**
+ * The body of a deliver request PDU sent to an ESME from the SMSC.
+ *
+ * Currently without any optional parameters.
+ */
 case class DeliverBody(serviceType: String, source: Address, dest: Address,
                       esmClass: Byte, protocolId: Byte, priorityFlag: Byte,
                       scheduleDeliveryTime: String, validityPeriod: String,
