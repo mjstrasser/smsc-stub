@@ -63,13 +63,13 @@ The HTTP interface has the URI `/send` to send an MO SMS with parameters:
 
 For example:
 
-    curl "http://localhost:18080/send?from=61401001001&to=176&msg=Test+message"
+    curl "http://localhost:18080/send?from=61401001001&to=176&msg=Test%20message"
 
 When sending MO messages the specified sender and recipient address strings are matched as described below for construction of the in the `deliver_sm` PDUs.
  
 ### Address types
 
-SMPP addresses are categorised by Type of Number (TON) and Numbering Plan Indicator. The server matches these combinations from an address string:
+SMPP addresses are categorised by Type of Number (TON) and Numbering Plan Indicator (NPI). The server matches these combinations from an address string:
  
 - Australian MSISDNs of the form 614xxxxxxxx (TON: International, NPI: ISDN)
 - International MSISDNs of the form +xxxxxxxxxx (TON: International, NPI: ISDN)
