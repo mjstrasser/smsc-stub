@@ -19,7 +19,7 @@ case class SubmitBody(serviceType: String, source: Address, dest: Address,
     nullTermString(scheduleDeliveryTime) ++ nullTermString(validityPeriod) ++
     ByteString(registeredDelivery, replaceIfPresentFlag, dataCoding, smDefaultMsgId, smLength) ++
     octetString(shortMessage)
-  override def toString = s"(source: $source dest: $dest msg: $shortMessage)"
+  override def toString = s"(source: $source dest: $dest msg: '$shortMessage' reg_deliv: $registeredDelivery)"
 }
 
 case class SubmitRespBody(messageId: String) extends Body {

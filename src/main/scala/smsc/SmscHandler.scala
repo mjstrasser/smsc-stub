@@ -38,7 +38,8 @@ class SmscHandler extends Actor with ActorLogging {
       log.debug("Received bytes: {}", data)
       val iterator = data.iterator
       while (iterator.hasNext)
-        sender ! Write(responseTo(iterator))
+        for (bytesResponse <- responseTo(iterator))
+          sender ! Write(bytesResponse)
 
     case PeerClosed =>
       // TCP connection closed.
@@ -52,34 +53,43 @@ class SmscHandler extends Actor with ActorLogging {
    * @param iterator an iterator with the bytes
    * @return a PDU as bytes
    */
-  def responseTo(iterator: ByteIterator): ByteString = {
+  def responseTo(iterator: ByteIterator): Seq[ByteString] = {
 
     val request = Pdu.parsePdu(iterator)
     log.info("Received: {}", request)
     logEndToEnd(request)
 
+    // Request PDUs have the high bit unset.
     if ((request.header.commandId & 0x80000000) == 0) {
-
-      // Request PDUs have the high bit unset.
-      val response = Stub.responseTo(request)
-      log.info("Sending: {}", response)
-      log.debug("As bytes: {}", response.toByteString)
-
-      if (isReceiverBindResp(response))
-        // Receiver or transceiver bind: add the sender to the receivers list.
-        addReceiver(sender())
-      else if (response.header.commandId == CommandId.unbind_resp)
-        // Unbind: remove this sender from the receivers list.
-        removeReceiver(sender())
-
-      response.toByteString
+      Stub.responsesTo(request).map(responseToByteString)
     } else {
       // Got a PDU that does not require a response.
-      ByteString()
+      Seq()
     }
 
   }
 
+  /**
+   * Converts a response PDU to an Akka `ByteString` after handling receiver bind
+   * and unbind, and logging.
+   *
+   * @param response a response PDU
+   * @return the PDU as bytes
+   */
+  private def responseToByteString(response: Pdu) = {
+
+    log.info("Sending: {}", response)
+    log.debug("As bytes: {}", response.toByteString)
+
+    if (isReceiverBindResp(response))
+      // Receiver or transceiver bind: add the sender to the receivers list.
+      addReceiver(sender())
+    else if (response.header.commandId == CommandId.unbind_resp)
+      // Unbind: remove this sender from the receivers list.
+      removeReceiver(sender())
+
+    response.toByteString
+  }
 
   /**
    * Returns true if the response PDU is a successful `bind_receiver_resp` or `bind_transceiver_resp`.

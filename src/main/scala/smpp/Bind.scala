@@ -52,7 +52,7 @@ case class BindReceiver(header: Header, body: BindBody) extends BindRequest {
 }
 /** Class for the SMPP `bind_receiver_resp` PDU. */
 case class BindReceiverResp(header: Header, body: BindRespBody) extends BindResponse {
-  val name = "bind_tx_resp"
+  val name = "bind_rx_resp"
 }
 
 /** Class for the SMPP `bind_transceiver` PDU. */

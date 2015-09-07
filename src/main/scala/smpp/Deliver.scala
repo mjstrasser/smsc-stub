@@ -17,14 +17,18 @@ case class DeliverBody(serviceType: String, source: Address, dest: Address,
                       esmClass: Byte, protocolId: Byte, priorityFlag: Byte,
                       scheduleDeliveryTime: String, validityPeriod: String,
                       registeredDelivery: Byte, replaceIfPresentFlag: Byte, dataCoding: Byte,
-                      smDefaultMsgId: Byte, smLength: Byte, shortMessage: String) extends Body {
+                      smDefaultMsgId: Byte, smLength: Byte, shortMessage: String,
+                      optionals: Seq[Tlv[TlValue]]) extends Body {
   def toByteString = nullTermString(serviceType) ++
     source.toByteString ++ dest.toByteString ++
     ByteString(esmClass, protocolId, priorityFlag) ++
     nullTermString(scheduleDeliveryTime) ++ nullTermString(validityPeriod) ++
     ByteString(registeredDelivery, replaceIfPresentFlag, dataCoding, smDefaultMsgId, smLength) ++
-    octetString(shortMessage)
-  override def toString = s"(source: $source dest: $dest msg: $shortMessage)"
+    octetString(shortMessage) ++ optionals.flatMap(_.toByteString)
+  override def toString = {
+    val opts = optionals.map(_.toString).mkString(" ")
+    s"(source: $source dest: $dest msg: '$shortMessage' esm: $esmClass $opts)"
+  }
 }
 
 /**
@@ -64,7 +68,7 @@ object Deliver {
     val shortMessage = parseOctetString(iter, smLength)
     DeliverBody(serviceType, source, dest,
       esmClass, protocolId, priorityFlag, scheduleDeliveryTime, validityPeriod, registeredDelivery,
-      replaceIfPresentFlag, dataCoding, smDefaultMsgId, smLength, shortMessage)
+      replaceIfPresentFlag, dataCoding, smDefaultMsgId, smLength, shortMessage, Seq())
   }
   
   def parseRespBody(iter: ByteIterator): DeliverRespBody = new DeliverRespBody(iter.getByte)
@@ -75,7 +79,18 @@ object Deliver {
                            0, 0, 1,
                            "", "",
                            0, 0, 0,
-                           0, moMessage.message.length.toByte, moMessage.message)
+                           0, moMessage.message.length.toByte, moMessage.message, Seq())
+    DeliverSm(header, body)
+  }
+
+  def deliveryReceipt(submitBody: SubmitBody, messageId: String) = {
+    val header = Header(CommandId.deliver_sm, CommandStatus.NULL, deliverCounter.incrementAndGet)
+    val body = DeliverBody(submitBody.serviceType, submitBody.dest, submitBody.source,
+                           EsmClass.smsc_delivery_rcpt, 0, 1,
+                           "", "",
+                           0, 0, 0,
+                           0, submitBody.shortMessage.length.toByte, submitBody.shortMessage,
+                           Seq(Optionals.messageStateDelivered, Optionals.receiptedMessageId(messageId)))
     DeliverSm(header, body)
   }
   

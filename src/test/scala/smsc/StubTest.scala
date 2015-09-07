@@ -13,12 +13,14 @@ class StubTest extends FlatSpec {
       Header(bind_transmitter, 0, 1),
       BindBody("SYSTEM_ID", "password", "mess_gateway", Pdu.SmppVersion, 1, 1, "*")
     )
-    val response = new BindTransmitterResp(
-      Header(bind_transmitter_resp, 0, 1),
-      BindRespBody(Stub.StubSystemId)
+    val response = Seq(
+      new BindTransmitterResp(
+        Header(bind_transmitter_resp, 0, 1),
+        BindRespBody(Stub.StubSystemId)
+      )
     )
 
-    assert(Stub.responseTo(request) == response)
+    assert(Stub.responsesTo(request) == response)
 
   }
 
