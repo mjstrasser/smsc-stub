@@ -11,7 +11,7 @@ import smpp.Pdu._
  */
 case class Address(ton: Byte, npi: Byte, addr: String) {
   override def toString = s"($ton $npi $addr)"
-  def toByteString = ByteString(ton, npi) ++ nullTermString(addr)
+  def toByteString = ByteString(ton, npi) ++ cString(addr)
 }
 
 object Address {
@@ -35,7 +35,7 @@ object Address {
   val npi_internet: Byte          = 0x0E
   val npi_wap_client_id: Byte     = 0x12
 
-  def parseAddress(iter: ByteIterator) = new Address(iter.getByte, iter.getByte, parseNullTermString(iter))
+  def parseAddress(iter: ByteIterator) = new Address(iter.getByte, iter.getByte, parseCString(iter))
 
   /**
    * Constructs an Address object with TON and NPI to match the specified address string.

@@ -13,17 +13,17 @@ case class SubmitBody(serviceType: String, source: Address, dest: Address,
                       scheduleDeliveryTime: String, validityPeriod: String,
                       registeredDelivery: Byte, replaceIfPresentFlag: Byte, dataCoding: Byte,
                       smDefaultMsgId: Byte, smLength: Byte, shortMessage: String) extends Body {
-  def toByteString = nullTermString(serviceType) ++
+  def toByteString = cString(serviceType) ++
     source.toByteString ++ dest.toByteString ++
     ByteString(esmClass, protocolId, priorityFlag) ++
-    nullTermString(scheduleDeliveryTime) ++ nullTermString(validityPeriod) ++
+    cString(scheduleDeliveryTime) ++ cString(validityPeriod) ++
     ByteString(registeredDelivery, replaceIfPresentFlag, dataCoding, smDefaultMsgId, smLength) ++
     octetString(shortMessage)
   override def toString = s"(source: $source dest: $dest msg: '$shortMessage' reg_deliv: $registeredDelivery)"
 }
 
 case class SubmitRespBody(messageId: String) extends Body {
-  def toByteString = nullTermString(messageId)
+  def toByteString = cString(messageId)
   override def toString = s"(id: $messageId)"
 }
 
@@ -44,14 +44,14 @@ object Submit {
    * @return the body of the PDU
    */
   def parseBody(iter: ByteIterator): SubmitBody = {
-    val serviceType = parseNullTermString(iter)
+    val serviceType = parseCString(iter)
     val source = Address.parseAddress(iter)
     val dest = Address.parseAddress(iter)
     val esmClass = iter.getByte
     val protocolId = iter.getByte
     val priorityFlag = iter.getByte
-    val scheduleDeliveryTime = parseNullTermString(iter)
-    val validityPeriod = parseNullTermString(iter)
+    val scheduleDeliveryTime = parseCString(iter)
+    val validityPeriod = parseCString(iter)
     val registeredDelivery = iter.getByte
     val replaceIfPresentFlag = iter.getByte
     val dataCoding = iter.getByte

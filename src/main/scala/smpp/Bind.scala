@@ -16,9 +16,9 @@ import smpp.Pdu._
  */
 case class BindBody(systemId: String, password: String, systemType: String, interfaceVersion: Byte,
                     addrTon: Byte, addrNpi: Byte, addressRange: String) extends Body {
-  def toByteString = nullTermString(systemId) ++ nullTermString(password) ++
-    nullTermString(systemType) ++ ByteString(interfaceVersion, addrTon, addrNpi) ++
-    nullTermString(addressRange)
+  def toByteString = cString(systemId) ++ cString(password) ++
+    cString(systemType) ++ ByteString(interfaceVersion, addrTon, addrNpi) ++
+    cString(addressRange)
   override def toString = s"(systemId: $systemId)"
 }
 
@@ -28,7 +28,7 @@ case class BindBody(systemId: String, password: String, systemType: String, inte
  * @param systemId the ID of the SMSC
  */
 case class BindRespBody(systemId: String) extends Body {
-  def toByteString = nullTermString(systemId)
+  def toByteString = cString(systemId)
   override def toString = s"(id: $systemId)"
 }
 
@@ -94,13 +94,13 @@ object Bind {
    * @return the body of the PDU
    */
   def parseBody(iter: ByteIterator): BindBody = {
-    val systemId = parseNullTermString(iter)
-    val password = parseNullTermString(iter)
-    val systemType = parseNullTermString(iter)
+    val systemId = parseCString(iter)
+    val password = parseCString(iter)
+    val systemType = parseCString(iter)
     val interfaceVersion = iter.getByte
     val addrTon = iter.getByte
     val addrNpi = iter.getByte
-    val addressRange = parseNullTermString(iter)
+    val addressRange = parseCString(iter)
     BindBody(systemId, password, systemType, interfaceVersion, addrTon, addrNpi, addressRange)
   }
 }

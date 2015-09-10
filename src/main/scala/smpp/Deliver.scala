@@ -19,10 +19,10 @@ case class DeliverBody(serviceType: String, source: Address, dest: Address,
                       registeredDelivery: Byte, replaceIfPresentFlag: Byte, dataCoding: Byte,
                       smDefaultMsgId: Byte, smLength: Byte, shortMessage: String,
                       optionals: Seq[Tlv[TlValue]]) extends Body {
-  def toByteString = nullTermString(serviceType) ++
+  def toByteString = cString(serviceType) ++
     source.toByteString ++ dest.toByteString ++
     ByteString(esmClass, protocolId, priorityFlag) ++
-    nullTermString(scheduleDeliveryTime) ++ nullTermString(validityPeriod) ++
+    cString(scheduleDeliveryTime) ++ cString(validityPeriod) ++
     ByteString(registeredDelivery, replaceIfPresentFlag, dataCoding, smDefaultMsgId, smLength) ++
     octetString(shortMessage) ++ optionals.flatMap(_.toByteString)
   override def toString = {
@@ -52,14 +52,14 @@ object Deliver {
   import Address._
 
   def parseBody(iter: ByteIterator): DeliverBody = {
-    val serviceType = parseNullTermString(iter)
+    val serviceType = parseCString(iter)
     val source = parseAddress(iter)
     val dest = parseAddress(iter)
     val esmClass = iter.getByte
     val protocolId = iter.getByte
     val priorityFlag = iter.getByte
-    val scheduleDeliveryTime = parseNullTermString(iter)
-    val validityPeriod = parseNullTermString(iter)
+    val scheduleDeliveryTime = parseCString(iter)
+    val validityPeriod = parseCString(iter)
     val registeredDelivery = iter.getByte
     val replaceIfPresentFlag = iter.getByte
     val dataCoding = iter.getByte

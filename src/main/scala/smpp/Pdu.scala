@@ -122,9 +122,9 @@ object Pdu {
    * Parses a null-terminated C-string from a ByteString.
    *
    * @param iterator the iterator used to read the input data
-   * @return the string in the input data
+   * @return the string from the input data
    */
-  def parseNullTermString(iterator: ByteIterator): String = {
+  def parseCString(iterator: ByteIterator): String = {
     // Need to clone the iterator to get the first part.
     val iterator2 = iterator.clone()
     iterator2.takeWhile(_ > 0)
@@ -137,6 +137,13 @@ object Pdu {
     iterator2.toByteString.utf8String
   }
 
+  /**
+   * Parses an octet string from a ByteString.
+   *
+   * @param iterator the iterator used to read the input data
+   * @param length the length of the string
+   * @return the string from the input data
+   */
   def parseOctetString(iterator: ByteIterator, length: Int): String = {
     // Need to clone the iterator to get the first part.
     val iterator2 = iterator.clone()
@@ -154,12 +161,13 @@ object Pdu {
    * These PDUs are currently known:
    *
    *  - [[BindTransmitter]]
-   *  - [[BindTransceiver]]
    *  - [[BindReceiver]]
+   *  - [[BindTransceiver]]
    *  - [[Unbind]]
    *  - [[EnquireLink]]
    *  - [[SubmitSm]]
    *  - [[DeliverSmResp]]
+   *  - [[CancelSm]]
    *  - [[GenericNack]]
    *
    * @param iterator over the bytes to parse
@@ -191,7 +199,7 @@ object Pdu {
    * @param string source string
    * @return bytes of the string with a null byte appended
    */
-  def nullTermString(string: String) = ByteString(string, "ASCII") ++ ByteString(0)
+  def cString(string: String) = ByteString(string, "ASCII") ++ ByteString(0)
 
   /**
    * Constructs an octet string with ASCII encoding.
