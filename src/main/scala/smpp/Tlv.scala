@@ -75,7 +75,7 @@ case class TlvNone(tag: Short) extends Tlv[TlNone] {
 
 object Tlv extends TlValue {
   import Optionals._
-  def parseTlv(iterator: ByteIterator): Tlv = {
+  def parseTlv(iterator: ByteIterator): Tlv[TlValue] = {
     val tag = iterator.getShort
     val length = iterator.getShort
     tag match {
