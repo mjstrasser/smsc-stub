@@ -1,15 +1,13 @@
 package smpp
 
-import akka.util.{ByteIterator, ByteString}
+import akka.util.ByteIterator
 import smpp.Pdu._
 
 case class CancelBody(serviceType: String, messageId: String,
-                      sourceAddrTon: Byte, sourceAddrNpi: Byte, sourceAddr: String,
-                      destAddrTon: Byte, destAddrNpi: Byte, destinationAddr: String) extends Body {
+                      source: Address, dest: Address) extends Body {
   def toByteString = nullTermString(serviceType) ++ nullTermString(messageId) ++
-    ByteString(sourceAddrTon, sourceAddrNpi) ++ nullTermString(sourceAddr) ++
-    ByteString(destAddrTon, destAddrNpi) ++ nullTermString(destinationAddr)
-  override def toString = s"(id: $messageId source: $sourceAddr dest: $destinationAddr)"
+    source.toByteString ++ dest.toByteString
+  override def toString = s"(id: $messageId source: $source dest: $dest)"
 }
 
 case class CancelSm(header: Header, body: CancelBody) extends Pdu {
@@ -25,14 +23,9 @@ object Cancel {
   def parseBody(iter: ByteIterator) = {
     val serviceType = parseNullTermString(iter)
     val messageId = parseNullTermString(iter)
-    val sourceAddrTon = iter.getByte
-    val sourceAddrNpi = iter.getByte
-    val sourceAddr = parseNullTermString(iter)
-    val destAddrTon = iter.getByte
-    val destAddrNpi = iter.getByte
-    val destinationAddr = parseNullTermString(iter)
-    CancelBody(serviceType, messageId, sourceAddrTon, sourceAddrNpi, sourceAddr,
-      destAddrTon, destAddrNpi, destinationAddr)
+    val source = Address.parseAddress(iter)
+    val dest = Address.parseAddress(iter)
+    CancelBody(serviceType, messageId, source, dest)
   }
   
 }

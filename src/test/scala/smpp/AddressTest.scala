@@ -1,5 +1,6 @@
 package smpp
 
+import akka.util.ByteString
 import org.scalatest.FlatSpec
 
 class AddressTest extends FlatSpec {
@@ -32,6 +33,13 @@ class AddressTest extends FlatSpec {
   it should "construct Address objects with ton_unknown and npi_unknown for all other address strings" in {
     val address = Address("Jump1234")
     assert(address.ton == ton_unknown && address.npi == npi_unknown)
+  }
+
+  "Address#toByteString" should "correctly encode an address" in {
+    val address = Address("61401001001")
+    val addressBytes = ByteString(ton_international, npi_ISDN) ++
+      ByteString("61401001001") ++ ByteString(0)
+    assert(address.toByteString == addressBytes)
   }
 
 }
