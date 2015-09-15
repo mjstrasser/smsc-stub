@@ -25,8 +25,15 @@ class SmscControl extends Actor with ActorLogging with SmscControlService {
 
   def shutdownStub: String = {
     log.info("Shutting down")
-    context.system.shutdown()
+    val system = context.system
+    import system.dispatcher
+
+    import scala.concurrent.duration._
+    import scala.language.postfixOps
     // TODO: Send unbind PDUs to bound ESMEs.
+    system.scheduler.scheduleOnce(500 milliseconds) {
+      system.shutdown()
+    }
     "Shutting down\n"
   }
 }

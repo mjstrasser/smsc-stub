@@ -4,7 +4,7 @@ oneJarSettings
 
 lazy val commonSettings = Seq(
   organization := "michaelstrasser.com",
-  version := "0.0.4",
+  version := "0.0.5",
   scalaVersion := "2.11.7"
 )
 
@@ -13,7 +13,9 @@ lazy val root = (project in file(".")).
   settings(
     name := "SMSC Stub Server in Akka"
   )
-  
+
+scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature", "-Xfatal-warnings")
+
 libraryDependencies ++= {
   val akkaV = "2.3.12"
   val sprayV = "1.3.3"

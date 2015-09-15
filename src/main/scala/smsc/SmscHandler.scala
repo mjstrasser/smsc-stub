@@ -1,12 +1,13 @@
 package smsc
 
-import akka.actor.{Actor, ActorLogging, ActorRef}
+import java.util.concurrent.{ConcurrentHashMap, CopyOnWriteArrayList}
+
+import akka.actor.{Actor, ActorRef, DiagnosticActorLogging}
 import akka.event.Logging
 import akka.io.Tcp
 import akka.util.{ByteIterator, ByteString}
 import smpp._
 
-import scala.collection.mutable.ListBuffer
 import scala.util.Random
 
 /**
@@ -18,7 +19,7 @@ import scala.util.Random
  *  - [[SmscStub]] objects from [[SmscControl]] actor to send to a bound receiver
  *    or transceiver ESME.
  */
-class SmscHandler extends Actor with ActorLogging {
+class SmscHandler extends Actor with DiagnosticActorLogging {
 
   import SmscHandler._
   import Tcp._
@@ -27,24 +28,64 @@ class SmscHandler extends Actor with ActorLogging {
 
     case deliverSm: DeliverSm =>
       // DeliverSm object sent by the SmscControl actor.
+      val esme = randomReceiver
+      log.mdc(systemIdMdc(esme))
       log.info("Sending: {}", deliverSm)
       val deliverBytes = deliverSm.toByteString
       log.debug("As bytes: {}", deliverBytes)
       logEndToEnd(deliverSm)
-      randomReceiver ! Write(deliverBytes)
+      esme ! Write(deliverBytes)
 
     case Received(data) =>
       // Data received from the SmscStub actor.
+      val esme = sender()
+      log.mdc(systemIdMdc(esme))
       log.debug("Received bytes: {}", data)
       val iterator = data.iterator
       while (iterator.hasNext)
         for (bytesResponse <- responseTo(iterator))
-          sender ! Write(bytesResponse)
+          esme ! Write(bytesResponse)
+      log.clearMDC()
 
     case PeerClosed =>
       // TCP connection closed.
       log.debug("Disconnected")
       context stop self
+  }
+
+  /**
+   * Constructs a map for use in the logging MDC by looking up the map of ESME binds.
+   *
+   * @param esme reference to an actor that represents a bound ESME
+   * @return a map with key `systemId` and value of the system ID for that ESME if it is in the map of binds
+   */
+  def systemIdMdc(esme: ActorRef) = {
+    val systemId = if (esmeBinds.containsKey(esme)) esmeBinds.get(esme) else ""
+    Map("systemId" -> systemId)
+  }
+
+  /**
+   * Manages bind and unbind request PDUs by storing references to the calling
+   * actor in a map for logging MDC and in a list for receiving actors
+   * to use when sending [[DeliverSm]] PDUs.
+   *
+   * @param request the incoming request PDU
+   */
+  def manageBinds(request: Pdu) = {
+    val esme = sender()
+    request match {
+      case BindTransmitter(_, body) =>
+        esmeBinds.put(esme, body.systemId)
+      case BindTransceiver(_, body) =>
+        esmeBinds.put(esme, body.systemId)
+        addReceiver(esme)
+      case BindReceiver(_, body) =>
+        esmeBinds.put(esme, body.systemId)
+        addReceiver(esme)
+      case unb: Unbind =>
+        esmeBinds.remove(esme)
+      case _ =>
+    }
   }
 
   /**
@@ -59,6 +100,8 @@ class SmscHandler extends Actor with ActorLogging {
     log.info("Received: {}", request)
     logEndToEnd(request)
 
+    manageBinds(request)
+
     // Request PDUs have the high bit unset.
     if ((request.header.commandId & 0x80000000) == 0) {
       Stub.responsesTo(request).map(responseToByteString)
@@ -70,24 +113,14 @@ class SmscHandler extends Actor with ActorLogging {
   }
 
   /**
-   * Converts a response PDU to an Akka `ByteString` after handling receiver bind
-   * and unbind, and logging.
+   * Converts a response PDU to an Akka `ByteString` after logging.
    *
    * @param response a response PDU
    * @return the PDU as bytes
    */
   private def responseToByteString(response: Pdu) = {
-
     log.info("Sending: {}", response)
     log.debug("As bytes: {}", response.toByteString)
-
-    if (isReceiverBindResp(response))
-      // Receiver or transceiver bind: add the sender to the receivers list.
-      addReceiver(sender())
-    else if (response.header.commandId == CommandId.unbind_resp)
-      // Unbind: remove this sender from the receivers list.
-      removeReceiver(sender())
-
     response.toByteString
   }
 
@@ -119,36 +152,35 @@ class SmscHandler extends Actor with ActorLogging {
   }
 
   /**
-   * Adds an actor ref synchronously to the list.
+   * Adds an actor ref to the list.
    *
    * @param ref reference to the actor
-   * @return count of receivers in the list after addition
    */
-  def addReceiver(ref: ActorRef) = synchronized {
-    log.debug(s"Adding receiver $ref")
-    receivers += ref
+  def addReceiver(ref: ActorRef) = {
+    receivers.add(ref)
+    log.debug("Added receiver {}, count = {}", ref, receivers.size)
   }
 
   /**
-   * Removes an actor ref synchronously from the list.
+   * Removes an actor ref from the list.
    *
    * @param ref reference to the actor
-   * @return count of receivers in the list after removal
    */
-  def removeReceiver(ref: ActorRef) = synchronized {
-    log.debug(s"Removing receiver $ref")
-    receivers -= ref
+  def removeReceiver(ref: ActorRef) = {
+    receivers.remove(ref)
+    log.debug("Removed receiver {}, count = {}", ref, receivers.size)
   }
 
   /**
-   * Randomly selects a receiver synchronously from the list.
+   * Randomly selects a receiver from the list.
+   *
    * @return one of the receivers in the list
    */
-  def randomReceiver: ActorRef = synchronized {
+  def randomReceiver: ActorRef = {
     if (receivers.isEmpty)
       throw new IllegalStateException("No receivers have been bound")
-    val receiver = receivers(Random.nextInt(receivers.size))
-    log.debug(s"Retrieved receiver $receiver")
+    val receiver = receivers.get(Random.nextInt(receivers.size))
+    log.debug("Retrieved receiver {}", receiver)
     receiver
   }
 
@@ -156,9 +188,13 @@ class SmscHandler extends Actor with ActorLogging {
 
 object SmscHandler {
   /**
-   * A synchronous list of actors for bound SMPP receiver or transceiver
+   * A synchronised list of actors for bound SMPP receiver or transceiver
    * connections.
    */
-  private val receivers = ListBuffer[ActorRef]()
+  private val receivers = new CopyOnWriteArrayList[ActorRef]
 
+  /**
+   * A synchronised map of bound ESMEs keyed by actor (ref) and containing System ID strings.
+   */
+  private val esmeBinds = new ConcurrentHashMap[ActorRef, String]
 }
