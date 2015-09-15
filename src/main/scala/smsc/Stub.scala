@@ -29,10 +29,10 @@ object Stub {
         Seq(BindReceiverResp(respHeader(header, ESME_ROK), Bind.respBody(StubSystemId)))
       case BindTransceiver(header, body) =>
         Seq(BindTransceiverResp(respHeader(header, ESME_ROK), Bind.respBody(StubSystemId)))
-      case Unbind(header, body) =>
-        Seq(Unbind(respHeader(header, ESME_ROK), body))
-      case EnquireLink(header, body) =>
-        Seq(EnquireLinkResp(respHeader(header, ESME_ROK), body))
+      case Unbind(header, _) =>
+        Seq(UnbindResp(respHeader(header, ESME_ROK), EmptyBody()))
+      case EnquireLink(header, _) =>
+        Seq(EnquireLinkResp(respHeader(header, ESME_ROK), EmptyBody()))
       case SubmitSm(header, body) =>
         val resp = SubmitSmResp(respHeader(header, ESME_ROK), Submit.respBody(newMessageId))
         if (RegisteredDelivery.smscReceiptRequested(body.registeredDelivery)) {

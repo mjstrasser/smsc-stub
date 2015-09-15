@@ -53,12 +53,6 @@ class SmscHandler extends Actor with DiagnosticActorLogging {
       context stop self
   }
 
-  /**
-   * Constructs a map for use in the logging MDC by looking up the map of ESME binds.
-   *
-   * @param esme reference to an actor that represents a bound ESME
-   * @return a map with key `systemId` and value of the system ID for that ESME if it is in the map of binds
-   */
   def systemIdMdc(esme: ActorRef) = {
     val systemId = if (esmeBinds.containsKey(esme)) esmeBinds.get(esme) else ""
     Map("systemId" -> systemId)
@@ -66,7 +60,7 @@ class SmscHandler extends Actor with DiagnosticActorLogging {
 
   /**
    * Manages bind and unbind request PDUs by storing references to the calling
-   * actor in a map for logging MDC and in a list for receiving actors
+   * actor in a map for logging MDC and in a list (buffer) for receiving actors
    * to use when sending [[DeliverSm]] PDUs.
    *
    * @param request the incoming request PDU
@@ -75,12 +69,12 @@ class SmscHandler extends Actor with DiagnosticActorLogging {
     val esme = sender()
     request match {
       case BindTransmitter(_, body) =>
-        esmeBinds.put(esme, body.systemId)
+        esmeBinds.put(esme, s"${body.systemId}/TX")
       case BindTransceiver(_, body) =>
-        esmeBinds.put(esme, body.systemId)
+        esmeBinds.put(esme, s"${body.systemId}/TRX")
         addReceiver(esme)
       case BindReceiver(_, body) =>
-        esmeBinds.put(esme, body.systemId)
+        esmeBinds.put(esme, s"${body.systemId}/RX")
         addReceiver(esme)
       case unb: Unbind =>
         esmeBinds.remove(esme)
