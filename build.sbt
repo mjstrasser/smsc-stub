@@ -1,10 +1,10 @@
-import com.github.retronym.SbtOneJar._
+//import com.github.retronym.SbtOneJar._
 
-oneJarSettings
+//oneJarSettings
 
 lazy val commonSettings = Seq(
   organization := "michaelstrasser.com",
-  version := "0.0.5",
+  version := "0.0.6",
   scalaVersion := "2.11.7"
 )
 
@@ -24,7 +24,7 @@ libraryDependencies ++= {
     "com.typesafe.akka" %% "akka-slf4j"       % akkaV,
     "io.spray"          %% "spray-can"        % sprayV,
     "io.spray"          %% "spray-routing"    % sprayV,
-    "ch.qos.logback"    %  "logback-classic"  % "1.1.3",
+    "ch.qos.logback"    %  "logback-classic"  % "1.2.3",
     "org.scalatest"     %% "scalatest"        % "2.2.1"    % Test
   )
 }
