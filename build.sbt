@@ -24,7 +24,7 @@ libraryDependencies ++= {
     "com.typesafe.akka" %% "akka-slf4j"       % akkaV,
     "io.spray"          %% "spray-can"        % sprayV,
     "io.spray"          %% "spray-routing"    % sprayV,
-    "ch.qos.logback"    %  "logback-classic"  % "1.2.3",
+    "ch.qos.logback"    %  "logback-classic"  % "1.4.14",
     "org.scalatest"     %% "scalatest"        % "2.2.1"    % Test
   )
 }
