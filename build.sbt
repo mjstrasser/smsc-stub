@@ -17,8 +17,8 @@ lazy val root = (project in file(".")).
 scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature", "-Xfatal-warnings")
 
 libraryDependencies ++= {
-  val akkaV = "2.3.12"
-  val sprayV = "1.3.3"
+  val akkaV = "2.8.5"
+  val sprayV = "1.3.4"
   Seq(
     "com.typesafe.akka" %% "akka-actor"       % akkaV,
     "com.typesafe.akka" %% "akka-slf4j"       % akkaV,
