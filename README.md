@@ -42,8 +42,8 @@ This is an SBT project currently using:
 
 - Scala 2.11.7
 - SBT 0.13.8
-- Akka 2.3.12
-- Spray 1.3.3
+- Akka 2.8.5
+- Spray 1.3.4
 
 Start the server using `sbt run`. Stop a running server by sending an HTTP GET request to `/shutdown`, e.g.:
 
